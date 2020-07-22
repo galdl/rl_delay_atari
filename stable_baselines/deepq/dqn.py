@@ -11,7 +11,8 @@ from stable_baselines.common.schedules import LinearSchedule
 from stable_baselines.common.buffers import ReplayBuffer, PrioritizedReplayBuffer
 from stable_baselines.deepq.build_graph import build_train
 from stable_baselines.deepq.policies import DQNPolicy
-
+import wandb
+from tqdm import tqdm
 
 class DQN(OffPolicyRLModel):
     """
@@ -194,7 +195,7 @@ class DQN(OffPolicyRLModel):
             if self._vec_normalize_env is not None:
                 obs_ = self._vec_normalize_env.get_original_obs().squeeze()
 
-            for _ in range(total_timesteps):
+            for timestep in tqdm(range(total_timesteps)):
                 # Take action and update exploration to the newest value
                 kwargs = {}
                 if not self.param_noise:
@@ -252,6 +253,8 @@ class DQN(OffPolicyRLModel):
                         episode_successes.append(float(maybe_is_success))
                     if not isinstance(self.env, VecEnv):
                         obs = self.env.reset()
+                    wandb.log({'episodic_reward': episode_rewards[-1]})
+                    # print('episodic_reward: {}'.format(episode_rewards[-1]))
                     episode_rewards.append(0.0)
                     reset = True
 
@@ -311,7 +314,7 @@ class DQN(OffPolicyRLModel):
                     mean_100ep_reward = -np.inf
                 else:
                     mean_100ep_reward = round(float(np.mean(episode_rewards[-101:-1])), 1)
-
+                # print(update_eps)
                 num_episodes = len(episode_rewards)
                 if self.verbose >= 1 and done and log_interval is not None and len(episode_rewards) % log_interval == 0:
                     logger.record_tabular("steps", self.num_timesteps)
