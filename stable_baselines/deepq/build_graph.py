@@ -140,23 +140,36 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
 
     policy = q_func(sess, ob_space, ac_space, 1, 1, None)
     obs_phs = (policy.obs_ph, policy.processed_obs)
-    deterministic_actions = tf.argmax(policy.q_values, axis=1)
 
-    batch_size = tf.shape(policy.obs_ph)[0]
-    n_actions = ac_space.nvec if isinstance(ac_space, MultiDiscrete) else ac_space.n
-    random_actions = tf.random_uniform(tf.stack([batch_size]), minval=0, maxval=n_actions, dtype=tf.int64)
-    chose_random = tf.random_uniform(tf.stack([batch_size]), minval=0, maxval=1, dtype=tf.float32) < eps
-    stochastic_actions = tf.where(chose_random, random_actions, deterministic_actions)
+    if not policy.policy_iteration_mode:
+        deterministic_actions = tf.argmax(policy.q_values, axis=1)
+        batch_size = tf.shape(policy.obs_ph)[0]
+        n_actions = ac_space.nvec if isinstance(ac_space, MultiDiscrete) else ac_space.n
+        random_actions = tf.random_uniform(tf.stack([batch_size]), minval=0, maxval=n_actions, dtype=tf.int64)
+        chose_random = tf.random_uniform(tf.stack([batch_size]), minval=0, maxval=1, dtype=tf.float32) < eps
+        stochastic_actions = tf.where(chose_random, random_actions, deterministic_actions)
 
-    output_actions = tf.cond(stochastic_ph, lambda: stochastic_actions, lambda: deterministic_actions)
-    update_eps_expr = eps.assign(tf.cond(update_eps_ph >= 0, lambda: update_eps_ph, lambda: eps))
-    _act = tf_util.function(inputs=[policy.obs_ph, stochastic_ph, update_eps_ph],
-                            outputs=output_actions,
-                            givens={update_eps_ph: -1.0, stochastic_ph: True},
-                            updates=[update_eps_expr])
+        output_actions = tf.cond(stochastic_ph, lambda: stochastic_actions, lambda: deterministic_actions)
+        update_eps_expr = eps.assign(tf.cond(update_eps_ph >= 0, lambda: update_eps_ph, lambda: eps))
+        _act = tf_util.function(inputs=[policy.obs_ph, stochastic_ph, update_eps_ph],
+                                outputs=output_actions,
+                                givens={update_eps_ph: -1.0, stochastic_ph: True},
+                                updates=[update_eps_expr])
 
-    def act(obs, stochastic=True, update_eps=-1):
-        return _act(obs, stochastic, update_eps)
+        def act(obs, stochastic=True, update_eps=-1):
+            return _act(obs, stochastic, update_eps)
+    else:
+        _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
+
+        def act(env):
+            import numpy as np
+            cur_state = env.clone_state()
+            res = []
+            for a in range(env.action_space.n):
+                new_state, r, done, info = env.step(a)
+                res.append(r + _predict_v(np.expand_dims(new_state, axis=0))[0][0])
+                env.restore_state(cur_state)
+            return np.argmax(res)
 
     return act, obs_phs
 
