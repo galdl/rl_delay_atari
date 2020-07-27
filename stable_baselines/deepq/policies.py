@@ -90,7 +90,7 @@ class FeedForwardPolicy(DQNPolicy):
 
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, layers=None,
                  cnn_extractor=nature_cnn, feature_extraction="cnn",
-                 obs_phs=None, layer_norm=False, dueling=True, act_fun=tf.nn.relu, **kwargs):
+                 obs_phs=None, layer_norm=False, dueling=True, act_fun=tf.nn.relu, single_output=False, **kwargs):
         super(FeedForwardPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps,
                                                 n_batch, dueling=dueling, reuse=reuse,
                                                 scale=(feature_extraction == "cnn"), obs_phs=obs_phs)
@@ -113,8 +113,8 @@ class FeedForwardPolicy(DQNPolicy):
                         if layer_norm:
                             action_out = tf_layers.layer_norm(action_out, center=True, scale=True)
                         action_out = act_fun(action_out)
-
-                action_scores = tf_layers.fully_connected(action_out, num_outputs=self.n_actions, activation_fn=None)
+                num_outputs = self.n_actions if not single_output else 1
+                action_scores = tf_layers.fully_connected(action_out, num_outputs=num_outputs, activation_fn=None)
 
             if self.dueling:
                 with tf.variable_scope("state_value"):
@@ -194,10 +194,10 @@ class LnCnnPolicy(FeedForwardPolicy):
     """
 
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch,
-                 reuse=False, obs_phs=None, dueling=True, **_kwargs):
+                 reuse=False, obs_phs=None, dueling=True, single_output=False, **_kwargs):
         super(LnCnnPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse,
                                           feature_extraction="cnn", obs_phs=obs_phs, dueling=dueling,
-                                          layer_norm=True, **_kwargs)
+                                          layer_norm=True, single_output=single_output, **_kwargs)
 
 
 class MlpPolicy(FeedForwardPolicy):
