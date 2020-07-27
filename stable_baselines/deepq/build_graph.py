@@ -166,7 +166,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
             cur_state = env.clone_state()
             res = []
             for a in range(env.action_space.n):
-                next_state, r, done, info = env.step(a)
+                next_state, r, done, info = env.step(a) 
                 res.append(r + _predict_v(np.expand_dims(next_state, axis=0))[0][0])
                 env.restore_state(cur_state)
             return [np.argmax(res)]
