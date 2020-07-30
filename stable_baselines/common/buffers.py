@@ -142,6 +142,10 @@ class ReplayBuffer(object):
         idxes = [random.randint(0, len(self._storage) - 1) for _ in range(batch_size)]
         return self._encode_sample(idxes, env=env)
 
+    def clear_storage(self):
+        self._storage = []
+        self._next_idx = 0
+
 
 class PrioritizedReplayBuffer(ReplayBuffer):
     def __init__(self, size, alpha):
