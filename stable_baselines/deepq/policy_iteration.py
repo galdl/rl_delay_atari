@@ -87,6 +87,8 @@ class PI(OffPolicyRLModel):
         self.tensorboard_log = tensorboard_log
         self.full_tensorboard_log = full_tensorboard_log
         self.double_q = double_q
+        # Number of samples
+        self.learn_iterations = int(self.train_freq / self.batch_size) * 3
 
         self.graph = None
         self.sess = None
@@ -156,6 +158,8 @@ class PI(OffPolicyRLModel):
 
         new_tb_log = self._init_num_timesteps(reset_num_timesteps)
         callback = self._init_callback(callback)
+
+
 
         with SetVerbosity(self.verbose), TensorboardWriter(self.graph, self.tensorboard_log, tb_log_name, new_tb_log) \
                 as writer:
@@ -264,46 +268,46 @@ class PI(OffPolicyRLModel):
                 can_sample = self.replay_buffer.can_sample(self.batch_size)
                 if can_sample and self.num_timesteps > self.learning_starts \
                         and self.num_timesteps % self.train_freq == 0:
-
                     callback.on_rollout_end()
-                    # Minimize the error in Bellman's equation on a batch sampled from replay buffer.
-                    # pytype:disable=bad-unpacking
-                    if self.prioritized_replay:
-                        assert self.beta_schedule is not None, \
-                               "BUG: should be LinearSchedule when self.prioritized_replay True"
-                        experience = self.replay_buffer.sample(self.batch_size,
-                                                               beta=self.beta_schedule.value(self.num_timesteps),
-                                                               env=self._vec_normalize_env)
-                        (obses_t, actions, rewards, obses_tp1, dones, weights, batch_idxes) = experience
-                    else:
-                        obses_t, actions, rewards, obses_tp1, dones = self.replay_buffer.sample(self.batch_size,
-                                                                                                env=self._vec_normalize_env)
-                        weights, batch_idxes = np.ones_like(rewards), None
-                    # pytype:enable=bad-unpacking
-
-                    if writer is not None:
-                        # run loss backprop with summary, but once every 100 steps save the metadata
-                        # (memory, compute time, ...)
-                        if (1 + self.num_timesteps) % 100 == 0:
-                            run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-                            run_metadata = tf.RunMetadata()
-                            summary, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1,
-                                                                  dones, weights, sess=self.sess, options=run_options,
-                                                                  run_metadata=run_metadata)
-                            writer.add_run_metadata(run_metadata, 'step%d' % self.num_timesteps)
+                    for learn_step in range(self.learn_iterations):
+                        # Minimize the error in Bellman's equation on a batch sampled from replay buffer.
+                        # pytype:disable=bad-unpacking
+                        if self.prioritized_replay:
+                            assert self.beta_schedule is not None, \
+                                   "BUG: should be LinearSchedule when self.prioritized_replay True"
+                            experience = self.replay_buffer.sample(self.batch_size,
+                                                                   beta=self.beta_schedule.value(self.num_timesteps),
+                                                                   env=self._vec_normalize_env)
+                            (obses_t, actions, rewards, obses_tp1, dones, weights, batch_idxes) = experience
                         else:
-                            summary, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1,
-                                                                  dones, weights, sess=self.sess)
-                        writer.add_summary(summary, self.num_timesteps)
-                    else:
-                        _, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1, dones, weights,
-                                                        sess=self.sess)
+                            obses_t, actions, rewards, obses_tp1, dones = self.replay_buffer.sample(self.batch_size,
+                                                                                                    env=self._vec_normalize_env)
+                            weights, batch_idxes = np.ones_like(rewards), None
+                        # pytype:enable=bad-unpacking
 
-                    if self.prioritized_replay:
-                        new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
-                        assert isinstance(self.replay_buffer, PrioritizedReplayBuffer)
-                        self.replay_buffer.update_priorities(batch_idxes, new_priorities)
+                        if writer is not None:
+                            # run loss backprop with summary, but once every 100 steps save the metadata
+                            # (memory, compute time, ...)
+                            if (1 + learn_step) % 100 == 0:
+                                run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
+                                run_metadata = tf.RunMetadata()
+                                summary, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1,
+                                                                      dones, weights, sess=self.sess, options=run_options,
+                                                                      run_metadata=run_metadata)
+                                writer.add_run_metadata(run_metadata, 'step%d' % self.num_timesteps)
+                            else:
+                                summary, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1,
+                                                                      dones, weights, sess=self.sess)
+                            writer.add_summary(summary, self.num_timesteps)
+                        else:
+                            _, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1, dones, weights,
+                                                            sess=self.sess)
 
+                        if self.prioritized_replay:
+                            new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
+                            assert isinstance(self.replay_buffer, PrioritizedReplayBuffer)
+                            self.replay_buffer.update_priorities(batch_idxes, new_priorities)
+                    self.replay_buffer.clear_storage()
                     callback.on_rollout_start()
 
                 if can_sample and self.num_timesteps > self.learning_starts and \
@@ -326,7 +330,6 @@ class PI(OffPolicyRLModel):
                     logger.record_tabular("% time spent exploring",
                                           int(100 * self.exploration.value(self.num_timesteps)))
                     logger.dump_tabular()
-
         callback.on_training_end()
         return self
 
