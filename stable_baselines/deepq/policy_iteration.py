@@ -70,6 +70,7 @@ class PI(OffPolicyRLModel):
 
         self.param_noise = param_noise
         self.learning_starts = learning_starts
+        # In PI, train_freq is the number of samples per PI iteration
         self.train_freq = train_freq
         self.prioritized_replay = prioritized_replay
         self.prioritized_replay_eps = prioritized_replay_eps
@@ -87,8 +88,9 @@ class PI(OffPolicyRLModel):
         self.tensorboard_log = tensorboard_log
         self.full_tensorboard_log = full_tensorboard_log
         self.double_q = double_q
-        # Number of samples
-        self.learn_iterations = int(self.train_freq / self.batch_size) * 3
+        # Number of iterations on training in each PI iteration (sample each iteration n_resample times)
+        n_resample = 3
+        self.learn_iterations = int(self.train_freq / self.batch_size) * n_resample
 
         self.graph = None
         self.sess = None
@@ -219,7 +221,7 @@ class PI(OffPolicyRLModel):
                     kwargs['update_param_noise_threshold'] = update_param_noise_threshold
                     kwargs['update_param_noise_scale'] = True
                 with self.sess.as_default():
-                    action = self.act(self.env, **kwargs)[0]
+                    action = self.act(self.env, update_eps, **kwargs)[0]
                 env_action = action
                 reset = False
                 new_obs, rew, done, info = self.env.step(env_action)

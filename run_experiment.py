@@ -21,7 +21,8 @@ checkpoint_callback = CheckpointCallback(save_freq=30*1800, save_path='./logs/',
                                          name_prefix=agent_full_name)
 
 # model = DQN(LnCnnPolicy, env, verbose=1, train_freq=4, exploration_fraction=0.01, learning_rate=0.0001)
-model = PI(LnCnnPolicy, env, verbose=1, train_freq=4, exploration_fraction=0.01, learning_rate=0.0001)
+model = PI(LnCnnPolicy, env, verbose=1, train_freq=50000, exploration_fraction=0.01, learning_rate=0.0001,
+           target_network_update_freq=500, exploration_final_eps=0.01)
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 model.save(agent_full_name)
 
