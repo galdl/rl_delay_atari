@@ -10,8 +10,17 @@ ENV_NAME = 'MsPacman-v0'
 AGENT_NAME = 'agent_' + ENV_NAME
 TOTAL_TIMESTEPS = int(2e6)
 
-
-wandb.init(project="stable_baselines-dqn")
+hyperparameter_defaults = dict(
+    train_freq=50000,
+    exploration_initial_eps=1.0,
+    learning_rate=0.0001,
+    target_network_update_freq=500,
+    exploration_final_eps=0.01,
+    seed=1
+)
+# Pass your defaults to wandb.init
+wandb.init(config=hyperparameter_defaults, project="stable_baselines-dqn")
+config = wandb.config
 
 env = gym.make(ENV_NAME)
 # env = make_atari('BreakoutNoFrameskip-v4')
@@ -21,8 +30,11 @@ checkpoint_callback = CheckpointCallback(save_freq=30*1800, save_path='./logs/',
                                          name_prefix=agent_full_name)
 
 # model = DQN(LnCnnPolicy, env, verbose=1, train_freq=4, exploration_fraction=0.01, learning_rate=0.0001)
-model = PI(LnCnnPolicy, env, verbose=1, train_freq=50000, exploration_fraction=0.01, learning_rate=0.0001,
-           target_network_update_freq=500, exploration_final_eps=0.01)
+model = PI(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq,
+           exploration_initial_eps=config.exploration_initial_eps,
+           exploration_fraction=0.01, learning_rate=config.learning_rate,
+           target_network_update_freq=config.target_network_update_freq,
+           exploration_final_eps=config.exploration_final_eps)
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 model.save(agent_full_name)
 

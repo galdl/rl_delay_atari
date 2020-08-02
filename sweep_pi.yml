@@ -1,0 +1,18 @@
+program: run_experiment.py
+method: grid
+metric:
+  goal: maximize
+  name: episodic_reward
+parameters:
+  train_freq:
+    values: [5000, 50000, 200000]
+  exploration_initial_eps:
+    values: [1.0, 0.0]
+  learning_rate:
+    values: [0.001, 0.0001]
+  target_network_update_freq:
+    values: [1, 500, 20000]
+  exploration_final_eps:
+    values: [0.01, 0.0001]
+  seed:
+    values: [1]
