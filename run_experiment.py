@@ -37,10 +37,10 @@ if config.use_pi:
                exploration_fraction=0.01, learning_rate=config.learning_rate,
                target_network_update_freq=config.target_network_update_freq,
                exploration_final_eps=config.exploration_final_eps)
-    model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 else:
     model = DQN(LnCnnPolicy, env, verbose=1, train_freq=4, exploration_fraction=0.01, learning_rate=0.0001)
 
+model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 model.save(agent_full_name)
 
 # del model # remove to demonstrate saving and loading
