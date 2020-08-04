@@ -114,7 +114,9 @@ class FeedForwardPolicy(DQNPolicy):
                         if layer_norm:
                             action_out = tf_layers.layer_norm(action_out, center=True, scale=True)
                         action_out = act_fun(action_out)
-                num_outputs = self.n_actions if not policy_iteration_mode else 1
+                # num_outputs = self.n_actions if not policy_iteration_mode else 1
+                #TODO: debugging; bring back
+                num_outputs = self.n_actions
                 action_scores = tf_layers.fully_connected(action_out, num_outputs=num_outputs, activation_fn=None)
 
             if self.dueling:
