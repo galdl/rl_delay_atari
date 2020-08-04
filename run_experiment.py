@@ -42,7 +42,7 @@ else:
     model = DQN(LnCnnPolicy, env, verbose=1, train_freq=4, exploration_fraction=0.01, learning_rate=0.0001)
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
-model.save(agent_full_name)
+# model.save(agent_full_name)
 
 # del model # remove to demonstrate saving and loading
 #
