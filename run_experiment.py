@@ -28,8 +28,9 @@ env = gym.make(config.env_name)
 # env = make_atari('BreakoutNoFrameskip-v4')
 agent_full_name = wandb.run.id + '_' + AGENT_NAME
 # Save a checkpoint every 1000 steps
-checkpoint_callback = CheckpointCallback(save_freq=30*1800, save_path='./logs/',
-                                         name_prefix=agent_full_name)
+# checkpoint_callback = CheckpointCallback(save_freq=30*1800, save_path='./logs/',
+#                                          name_prefix=agent_full_name)
+checkpoint_callback = None
 
 if config.use_pi:
     model = PI(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq,
