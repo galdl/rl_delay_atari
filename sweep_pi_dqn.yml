@@ -5,11 +5,11 @@ metric:
   name: episodic_reward
 parameters:
   env_name:
-    values: ['MsPacman-v0', 'AirRaid-v0']
+    values: ['MsPacman-v0']
   use_pi:
     values: [True, False]
   train_freq:
-    values: [500, 5000]
+    values: [2500, 5000, 10000]
   exploration_initial_eps:
     values: [1.0]
   learning_rate:
