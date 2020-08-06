@@ -175,7 +175,31 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                 action = np.argmax(res)
             return [action]
 
+            # def dfs(graph, node):
+            #     visited = [node]
+                max_depth = 3
+                curr_depth = 0
+                stack = [(cur_state, None, None, 0)]
+                while stack:
+                    state, a, sum_rew, curr_depth = stack[-1]
+                    # if node not in visited:
+                    #     visited.extend(node)
+                    remove_from_stack = True
+                    for a in range(env.action_space.n):
+                        # if next not in visited:
+                        next_state, r, done, info = env.step(a)
+                        curr_depth + 1
+                        stack.extend(a)
+                        remove_from_stack = False
+                        break
+                    if remove_from_stack:
+                        curr_depth -= 1
+                        stack.pop()
+                return visited
+
     return act, obs_phs
+
+
 
 
 def build_act_with_param_noise(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess,
