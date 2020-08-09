@@ -66,6 +66,7 @@ import tensorflow as tf
 from gym.spaces import MultiDiscrete
 
 from stable_baselines.common import tf_util
+import numpy as np
 
 
 def scope_vars(scope, trainable_only=False):
@@ -161,41 +162,52 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
     else:
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
 
-        def act(env, update_eps=-1):
-            import numpy as np
+        def act(env, update_eps=-1, gamma=1.0):
+            curr_state = env.state
+            def dfs():
+                origin_state = env.clone_state()
+                max_depth = 3
+                stack = [(curr_state, [], None, 0)]
+                best_action_seq = None
+                best_value = - np.inf
+                while stack:
+                    state, a_list, sum_rew, curr_depth = stack.pop()
+                    for a in range(env.action_space.n):
+                        env.restore_state(state)
+                        next_state, r, done, info = env.step(a)  # make sure step is on state
+
+                        next_node = (next_state, a_list.append(a), sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
+                        if curr_depth >= max_depth or done:
+                            next_value = 0
+                            if not done:
+                                next_value = _predict_v(np.expand_dims(next_state, axis=0))[0][0]
+                            value = next_node[2] + (gamma ** (curr_depth + 1)) * next_value
+                            if value > best_value:
+                                # TODO: try outputing value and using it for training
+                                best_value = value
+                                best_action_seq = next_node[1]
+                        else:
+                            stack.append(next_node)
+                env.restore_state(origin_state)
+                return best_action_seq[0], best_value
+
             if np.random.uniform() < update_eps:
                 action = np.random.choice(n_actions)
             else:
-                cur_state = env.clone_state()
-                res = []
-                for a in range(env.action_space.n):
-                    next_state, r, done, info = env.step(a)
-                    res.append(r + max(_predict_v(np.expand_dims(next_state, axis=0))[0]))
-                    env.restore_state(cur_state)
-                action = np.argmax(res)
+            #     cur_state = env.clone_state()
+            #     res = []
+            #     for a in range(env.action_space.n):
+            #         next_state, r, done, info = env.step(a)
+            #         value = r
+            #         if not done:
+            #             value += gamma * _predict_v(np.expand_dims(next_state, axis=0))[0][0]
+            #         res.append(value)
+            #         env.restore_state(cur_state)
+            #     action = np.argmax(res)
+            # return [action]
+                action, _ = dfs()
             return [action]
 
-            # def dfs(graph, node):
-            #     visited = [node]
-                max_depth = 3
-                curr_depth = 0
-                stack = [(cur_state, None, None, 0)]
-                while stack:
-                    state, a, sum_rew, curr_depth = stack[-1]
-                    # if node not in visited:
-                    #     visited.extend(node)
-                    remove_from_stack = True
-                    for a in range(env.action_space.n):
-                        # if next not in visited:
-                        next_state, r, done, info = env.step(a)
-                        curr_depth + 1
-                        stack.extend(a)
-                        remove_from_stack = False
-                        break
-                    if remove_from_stack:
-                        curr_depth -= 1
-                        stack.pop()
-                return visited
 
     return act, obs_phs
 

@@ -221,7 +221,7 @@ class PI(OffPolicyRLModel):
                     kwargs['update_param_noise_threshold'] = update_param_noise_threshold
                     kwargs['update_param_noise_scale'] = True
                 with self.sess.as_default():
-                    action = self.act(self.env, update_eps, **kwargs)[0]
+                    action = self.act(self.env, update_eps, gamma=self.gamma, **kwargs)[0]
                 env_action = action
                 reset = False
                 new_obs, rew, done, info = self.env.step(env_action)
