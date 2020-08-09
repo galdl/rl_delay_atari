@@ -171,13 +171,13 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                 best_value = - np.inf
                 while stack:
                     state, a_list, sum_rew, curr_depth = stack.pop()
-                    a_list_copy = deepcopy(a_list)
                     for a in range(env.action_space.n):
+                        a_list_copy = deepcopy(a_list)
                         env.restore_state(state)
                         next_state, r, done, info = env.step(a)  # make sure step is on state
                         print(sum(sum((next_state))))
                         next_state_clone = env.clone_state()
-                        next_node = (next_state_clone, a_list.append(a), sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
+                        next_node = (next_state_clone, a_list_copy.append(a), sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
                         if curr_depth >= max_depth or done:
                             next_value = 0
                             if not done:
