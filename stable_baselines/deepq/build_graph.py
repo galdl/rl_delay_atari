@@ -67,6 +67,7 @@ from gym.spaces import MultiDiscrete
 
 from stable_baselines.common import tf_util
 import numpy as np
+from copy import deepcopy
 
 
 def scope_vars(scope, trainable_only=False):
@@ -162,21 +163,21 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
     else:
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
 
-        def act(env, update_eps=-1, gamma=1.0):
-            curr_state = env.state
+        def act(env, update_eps=-1, gamma=1.0, max_depth=1):
             def dfs():
                 origin_state = env.clone_state()
-                max_depth = 3
-                stack = [(curr_state, [], None, 0)]
+                stack = [(origin_state, [], 0, 0)]
                 best_action_seq = None
                 best_value = - np.inf
                 while stack:
                     state, a_list, sum_rew, curr_depth = stack.pop()
+                    a_list_copy = deepcopy(a_list)
                     for a in range(env.action_space.n):
                         env.restore_state(state)
                         next_state, r, done, info = env.step(a)  # make sure step is on state
-
-                        next_node = (next_state, a_list.append(a), sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
+                        print(sum(sum((next_state))))
+                        next_state_clone = env.clone_state()
+                        next_node = (next_state_clone, a_list.append(a), sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
                         if curr_depth >= max_depth or done:
                             next_value = 0
                             if not done:
