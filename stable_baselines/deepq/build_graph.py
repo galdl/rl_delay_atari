@@ -164,11 +164,15 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
 
         def act(env, update_eps=-1, gamma=1.0, max_depth=1):
+            def _hash_state(state, depth):
+                return np.hstack((state.flatten(), depth)).tostring()
+
             def dfs():
                 origin_state = env.clone_state()
                 stack = [(origin_state, [], 0, 0)]
                 best_action_seq = None
                 best_value = - np.inf
+                visited = {}
                 while stack:
                     state, a_list, sum_rew, curr_depth = stack.pop()
                     for a in range(env.action_space.n):
@@ -176,8 +180,11 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                         env.restore_state(state)
                         next_state, r, done, info = env.step(a)  # make sure step is on state
                         print(sum(sum((next_state))))
+                        if _hash_state(next_state, curr_depth) in visited:
+                            continue
+                        visited[_hash_state(next_state, curr_depth)] = True
                         next_state_clone = env.clone_state()
-                        next_node = (next_state_clone, a_list_copy.append(a), sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
+                        next_node = (next_state_clone, a_list_copy + [a], sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
                         if curr_depth >= max_depth or done:
                             next_value = 0
                             if not done:
