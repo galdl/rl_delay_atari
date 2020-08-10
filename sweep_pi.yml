@@ -4,15 +4,21 @@ metric:
   goal: maximize
   name: episodic_reward
 parameters:
+  env_name:
+    values: ['MsPacman-v0']
+  use_pi:
+    values: [True]
+  tree_depth:
+    values: [1, 2, 3, 4]
   train_freq:
-    values: [5000, 50000, 200000]
+    values: [10000]
   exploration_initial_eps:
-    values: [1.0, 0.0]
+    values: [1.0]
   learning_rate:
-    values: [0.001, 0.0001]
+    values: [0.0005, 0.001]
   target_network_update_freq:
-    values: [1, 500, 20000]
-  exploration_final_eps:
-    values: [0.01, 0.0001]
-  seed:
     values: [1]
+  exploration_final_eps:
+    values: [0.01, 0.001]
+  seed:
+    values: [1, 2]
