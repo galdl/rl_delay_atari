@@ -173,19 +173,22 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                 best_action_seq = None
                 best_value = - np.inf
                 visited = {}
+                # c_skipped, c_total = 0, 0
                 while stack:
                     state, a_list, sum_rew, curr_depth = stack.pop()
                     for a in range(env.action_space.n):
                         a_list_copy = deepcopy(a_list)
                         env.restore_state(state)
                         next_state, r, done, info = env.step(a)  # make sure step is on state
-                        print(sum(sum((next_state))))
+                        # c_skipped += 1
                         if _hash_state(next_state, curr_depth) in visited:
                             continue
+                        # c_total +=1
+                        # print(sum(sum((next_state))))
                         visited[_hash_state(next_state, curr_depth)] = True
                         next_state_clone = env.clone_state()
                         next_node = (next_state_clone, a_list_copy + [a], sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
-                        if curr_depth >= max_depth or done:
+                        if curr_depth >= (max_depth - 1) or done:
                             next_value = 0
                             if not done:
                                 next_value = _predict_v(np.expand_dims(next_state, axis=0))[0][0]
@@ -196,6 +199,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                                 best_action_seq = next_node[1]
                         else:
                             stack.append(next_node)
+                # print('skipped: {}, non-skipped: {}'.format(c_skipped, c_total))
                 env.restore_state(origin_state)
                 return best_action_seq[0], best_value
 

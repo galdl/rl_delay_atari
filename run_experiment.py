@@ -37,7 +37,7 @@ if config.use_pi:
                exploration_initial_eps=config.exploration_initial_eps,
                exploration_fraction=0.01, learning_rate=config.learning_rate,
                target_network_update_freq=config.target_network_update_freq,
-               exploration_final_eps=config.exploration_final_eps, tree_depth=2)
+               exploration_final_eps=config.exploration_final_eps, tree_depth=1)
 else:
     model = DQN(LnCnnPolicy, env, verbose=1, train_freq=4, exploration_fraction=0.01, learning_rate=0.0001,
                 double_q=False)
