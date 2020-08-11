@@ -192,7 +192,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                             next_value = 0
                             if not done:
                                 next_value = _predict_v(np.expand_dims(next_state, axis=0))[0][0]
-                            value = next_node[2] #+ (gamma ** (curr_depth + 1)) * next_value
+                            value = next_node[2] + (gamma ** (curr_depth + 1)) * next_value
                             if value > best_value:
                                 # TODO: try outputing value and using it for training
                                 best_value = value
