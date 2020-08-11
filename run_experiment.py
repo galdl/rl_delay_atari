@@ -16,15 +16,15 @@ if platform.system() == 'Darwin':
 TOTAL_TIMESTEPS = int(2e6)
 
 hyperparameter_defaults = dict(
-    train_freq=1000,
+    train_freq=30000,
     exploration_initial_eps=1.0,
-    learning_rate=0.0001,
-    target_network_update_freq=500,
-    exploration_final_eps=0.01,
+    learning_rate=0.001,
+    target_network_update_freq=1,
+    exploration_final_eps=0.001,
     seed=1,
     env_name='MsPacman-v0',
     use_pi=True,
-    tree_depth=1,
+    tree_depth=3,
     gamma=0.99
 )
 # Pass your defaults to wandb.init
