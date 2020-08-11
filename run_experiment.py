@@ -16,7 +16,7 @@ if platform.system() == 'Darwin':
 TOTAL_TIMESTEPS = int(2e6)
 
 hyperparameter_defaults = dict(
-    train_freq=50000,
+    train_freq=1000,
     exploration_initial_eps=1.0,
     learning_rate=0.0001,
     target_network_update_freq=500,

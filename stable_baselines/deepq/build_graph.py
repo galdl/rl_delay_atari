@@ -524,7 +524,7 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
             done_mask_ph,
             importance_weights_ph
         ],
-        outputs=[summary, td_error],
+        outputs=[summary, td_error, weighted_error],
         updates=[optimize_expr]
     )
     update_target = tf_util.function([], [], updates=[update_target_expr])
