@@ -190,8 +190,8 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                         next_node = (next_state_clone, a_list_copy + [a], sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
                         if curr_depth >= (max_depth - 1) or done:
                             next_value = 0
-                            if not done:
-                                next_value = _predict_v(np.expand_dims(next_state, axis=0))[0][0]
+                            # if not done:
+                            #     next_value = _predict_v(np.expand_dims(next_state, axis=0))[0][0]
                             value = next_node[2] + (gamma ** (curr_depth + 1)) * next_value
                             if value > best_value:
                                 # TODO: try outputing value and using it for training
@@ -524,7 +524,7 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
             done_mask_ph,
             importance_weights_ph
         ],
-        outputs=[summary, td_error, weighted_error],
+        outputs=[summary, td_error],
         updates=[optimize_expr]
     )
     update_target = tf_util.function([], [], updates=[update_target_expr])

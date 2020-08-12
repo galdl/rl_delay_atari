@@ -294,18 +294,18 @@ class PI(OffPolicyRLModel):
                             if (1 + learn_step) % 100 == 0:
                                 run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
                                 run_metadata = tf.RunMetadata()
-                                summary, td_errors, weighted_error = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1,
+                                summary, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1,
                                                                       dones, weights, sess=self.sess, options=run_options,
                                                                       run_metadata=run_metadata)
                                 writer.add_run_metadata(run_metadata, 'step%d' % self.num_timesteps)
                             else:
-                                summary, td_errors, weighted_error = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1,
+                                summary, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1,
                                                                       dones, weights, sess=self.sess)
                             writer.add_summary(summary, self.num_timesteps)
                         else:
-                            summary, td_errors, weighted_error = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1, dones, weights,
+                            summary, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1, dones, weights,
                                                             sess=self.sess)
-                        wandb.log({'loss': weighted_error})
+                        # wandb.log({'loss': weighted_error})
                         if self.prioritized_replay:
                             new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
                             assert isinstance(self.replay_buffer, PrioritizedReplayBuffer)
