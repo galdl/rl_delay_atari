@@ -61,7 +61,8 @@ class PI(OffPolicyRLModel):
                  prioritized_replay_alpha=0.6, prioritized_replay_beta0=0.4, prioritized_replay_beta_iters=None,
                  prioritized_replay_eps=1e-6, param_noise=False,
                  n_cpu_tf_sess=None, verbose=0, tensorboard_log=None,
-                 _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None, tree_depth=1):
+                 _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None, tree_depth=1,
+                 ignore_value_function=False):
 
         policy = partial(policy, dueling=False, policy_iteration_mode=True)
         # TODO: replay_buffer refactoring
@@ -91,7 +92,7 @@ class PI(OffPolicyRLModel):
         # Number of iterations on training in each PI iteration (sample each iteration n_resample times)
         n_resample = 3
         self.learn_iterations = int(self.train_freq / self.batch_size) * n_resample
-
+        self.ignore_value_function = ignore_value_function
         self.graph = None
         self.sess = None
         self._train_step = None
@@ -222,7 +223,8 @@ class PI(OffPolicyRLModel):
                     kwargs['update_param_noise_threshold'] = update_param_noise_threshold
                     kwargs['update_param_noise_scale'] = True
                 with self.sess.as_default():
-                    action = self.act(self.env, update_eps, gamma=self.gamma, max_depth=self.tree_depth, **kwargs)[0]
+                    action = self.act(self.env, update_eps, gamma=self.gamma, max_depth=self.tree_depth,
+                                      ignore_value_function=self.ignore_value_function, **kwargs)[0]
                 env_action = action
                 reset = False
                 new_obs, rew, done, info = self.env.step(env_action)

@@ -163,7 +163,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
     else:
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
 
-        def act(env, update_eps=-1, gamma=1.0, max_depth=1):
+        def act(env, update_eps=-1, gamma=1.0, max_depth=1, ignore_value_function=False):
             def _hash_state(state, depth):
                 return np.hstack((state.flatten(), depth)).tostring()
 
@@ -191,8 +191,8 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                         next_node = (next_state_clone, a_list_copy + [a], sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
                         if curr_depth >= (max_depth - 1) or done:
                             next_value = 0
-                            # if not done:
-                            #     next_value = _predict_v(np.expand_dims(next_state, axis=0))[0][0]
+                            if (not done) and (not ignore_value_function):
+                                next_value = _predict_v(np.expand_dims(next_state, axis=0))[0][0]
                             value = next_node[2] + (gamma ** (curr_depth + 1)) * next_value
                             if value > best_value:
                                 # TODO: try outputing value and using it for training

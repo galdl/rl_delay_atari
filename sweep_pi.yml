@@ -9,9 +9,11 @@ parameters:
   use_pi:
     values: [True]
   tree_depth:
-    values: [1, 2, 3, 4]
+    values: [1, 2, 3]
   gamma:
-    values: [0.99, 0.95]
+    values: [0.99]
+  ignore_value_function:
+    values: [True, False]
   train_freq:
     values: [10000]
   exploration_initial_eps:
@@ -23,4 +25,4 @@ parameters:
   exploration_final_eps:
     values: [0.000] #0.001
   seed:
-    values: [1]
+    values: [1, 2]
