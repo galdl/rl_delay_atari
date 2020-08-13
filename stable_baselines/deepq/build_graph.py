@@ -169,6 +169,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
 
             def dfs():
                 origin_state = env.clone_state()
+                origin_elapsed_steps = env._elapsed_steps
                 stack = [(origin_state, [], 0, 0)]
                 best_action_seq = None
                 best_value = - np.inf
@@ -176,7 +177,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                 # c_skipped, c_total = 0, 0
                 while stack:
                     state, a_list, sum_rew, curr_depth = stack.pop()
-                    for a in range(env.action_space.n):
+                    for a in np.random.permutation(env.action_space.n):  #range(env.action_space.n):
                         a_list_copy = deepcopy(a_list)
                         env.restore_state(state)
                         next_state, r, done, info = env.step(a)  # make sure step is on state
@@ -201,6 +202,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                             stack.append(next_node)
                 # print('skipped: {}, non-skipped: {}'.format(c_skipped, c_total))
                 env.restore_state(origin_state)
+                env._elapsed_steps = origin_elapsed_steps
                 return best_action_seq[0], best_value
 
             if np.random.uniform() < update_eps:

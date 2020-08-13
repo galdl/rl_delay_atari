@@ -17,7 +17,7 @@ TOTAL_TIMESTEPS = int(2e6)
 
 hyperparameter_defaults = dict(
     train_freq=30000,
-    exploration_initial_eps=1.0,
+    exploration_initial_eps=0.0,
     learning_rate=0.001,
     target_network_update_freq=1,
     exploration_final_eps=0.001,
