@@ -163,12 +163,13 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
     else:
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
 
-        def act(env, update_eps=-1, gamma=1.0, max_depth=1):
+        def act(env, update_eps=-1, gamma=1.0, max_depth=1, ignore_value_function=False):
             def _hash_state(state, depth):
                 return np.hstack((state.flatten(), depth)).tostring()
 
             def dfs():
                 origin_state = env.clone_state()
+                origin_elapsed_steps = env._elapsed_steps
                 stack = [(origin_state, [], 0, 0)]
                 best_action_seq = None
                 best_value = - np.inf
@@ -176,7 +177,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                 # c_skipped, c_total = 0, 0
                 while stack:
                     state, a_list, sum_rew, curr_depth = stack.pop()
-                    for a in range(env.action_space.n):
+                    for a in np.random.permutation(env.action_space.n):  #range(env.action_space.n):
                         a_list_copy = deepcopy(a_list)
                         env.restore_state(state)
                         next_state, r, done, info = env.step(a)  # make sure step is on state
@@ -190,7 +191,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                         next_node = (next_state_clone, a_list_copy + [a], sum_rew + (gamma ** curr_depth) * r, curr_depth + 1)
                         if curr_depth >= (max_depth - 1) or done:
                             next_value = 0
-                            if not done:
+                            if (not done) and (not ignore_value_function):
                                 next_value = _predict_v(np.expand_dims(next_state, axis=0))[0][0]
                             value = next_node[2] #+ (gamma ** (curr_depth + 1)) * next_value
                             if value > best_value:
@@ -201,6 +202,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                             stack.append(next_node)
                 # print('skipped: {}, non-skipped: {}'.format(c_skipped, c_total))
                 env.restore_state(origin_state)
+                env._elapsed_steps = origin_elapsed_steps
                 return best_action_seq[0], best_value
 
             if np.random.uniform() < update_eps:
@@ -524,7 +526,7 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
             done_mask_ph,
             importance_weights_ph
         ],
-        outputs=[summary, td_error, weighted_error],
+        outputs=[summary, td_error],
         updates=[optimize_expr]
     )
     update_target = tf_util.function([], [], updates=[update_target_expr])

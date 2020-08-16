@@ -17,7 +17,7 @@ TOTAL_TIMESTEPS = int(2e6)
 
 hyperparameter_defaults = dict(
     train_freq=30000,
-    exploration_initial_eps=1.0,
+    exploration_initial_eps=0.0,
     learning_rate=0.001,
     target_network_update_freq=1,
     exploration_final_eps=0.001,
@@ -25,7 +25,8 @@ hyperparameter_defaults = dict(
     env_name='MsPacman-v0',
     use_pi=True,
     tree_depth=3,
-    gamma=0.99
+    gamma=0.99,
+    ignore_value_function=False
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines-dqn")
@@ -45,7 +46,7 @@ if config.use_pi:
                exploration_fraction=0.01, learning_rate=config.learning_rate,
                target_network_update_freq=config.target_network_update_freq,
                exploration_final_eps=config.exploration_final_eps, tree_depth=config.tree_depth,
-               gamma=config.gamma)
+               gamma=config.gamma, ignore_value_function=config.ignore_value_function)
 else:
     model = DQN(LnCnnPolicy, env, verbose=1, train_freq=4, exploration_fraction=0.01, learning_rate=0.0001,
                 double_q=False)
