@@ -5,6 +5,7 @@ from stable_baselines import bench, logger
 from stable_baselines.common import set_global_seeds
 from stable_baselines.common.atari_wrappers import make_atari
 from stable_baselines.deepq import DQN, wrap_atari_dqn, CnnPolicy
+import wandb
 
 
 def main():
@@ -18,6 +19,8 @@ def main():
     parser.add_argument('--dueling', type=int, default=1)
     parser.add_argument('--prioritized-replay-alpha', type=float, default=0.6)
     parser.add_argument('--num-timesteps', type=int, default=int(10e6))
+
+    wandb.init(project="stable_baselines-dqn")
 
     args = parser.parse_args()
     logger.configure()
