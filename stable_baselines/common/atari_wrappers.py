@@ -274,7 +274,7 @@ class LazyFrames(object):
         return self._force()[i]
 
 
-def make_atari(env_id):
+def make_atari(env_id, noop_reset=True, max_skip=True):
     """
     Create a wrapped atari Environment
 
@@ -282,9 +282,11 @@ def make_atari(env_id):
     :return: (Gym Environment) the wrapped atari environment
     """
     env = gym.make(env_id)
-    assert 'NoFrameskip' in env.spec.id
-    env = NoopResetEnv(env, noop_max=30)
-    env = MaxAndSkipEnv(env, skip=4)
+    if noop_reset:
+        env = NoopResetEnv(env, noop_max=30)
+    if max_skip:
+        assert 'NoFrameskip' in env.spec.id
+        env = MaxAndSkipEnv(env, skip=4)
     return env
 
 

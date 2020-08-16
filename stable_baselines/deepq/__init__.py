@@ -12,4 +12,4 @@ def wrap_atari_dqn(env):
     :return: (Gym Environment) the wrapped environment
     """
     from stable_baselines.common.atari_wrappers import wrap_deepmind
-    return wrap_deepmind(env, frame_stack=True, scale=False)
+    return wrap_deepmind(env, frame_stack=True, scale=False, clip_rewards=False, episode_life=False)

@@ -25,7 +25,7 @@ def main():
     args = parser.parse_args()
     logger.configure()
     set_global_seeds(args.seed)
-    env = make_atari(args.env)
+    env = make_atari(args.env, max_skip=False, noop_reset=False)
     env = bench.Monitor(env, logger.get_dir())
     env = wrap_atari_dqn(env)
     policy = partial(CnnPolicy, dueling=args.dueling == 1)
