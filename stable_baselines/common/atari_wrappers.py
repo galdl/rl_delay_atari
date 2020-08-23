@@ -240,6 +240,69 @@ class ScaledFloatFrame(gym.ObservationWrapper):
         # with smaller replay buffers only.
         return np.array(observation).astype(np.float32) / 255.0
 
+class DelayWrapper(gym.Env):
+    def __init__(self, env, delay_value):
+        self.orig_env = env
+        self.delay_value = delay_value
+        self.pending_actions = deque()
+        self.stored_init_state = None
+        self.is_atari_env = True
+        self.action_space = self.orig_env.action_space
+        self.observation_space = self.orig_env.observation_space
+
+    def step(self, action):
+        if self.delay_value > 0:
+            self.pending_actions.append(action)
+            if len(self.pending_actions) - 1 >= self.delay_value:
+                executed_action = self.pending_actions.popleft()
+            else:
+                executed_action = np.random.choice(self.action_space.n)
+        else:
+            executed_action = action
+        return self.orig_env.step(executed_action)
+
+    def reset(self):
+        self.pending_actions.clear()
+        return self.orig_env.reset()
+
+    def get_pending_actions(self):
+        if len(self.pending_actions) == 0 and self.delay_value > 0:
+            # reconstruct anticipated trajectory using the oracle
+            self.store_initial_state()
+            curr_state = self.get_curr_state()
+            for i in range(self.delay_value):
+                # estimated_action = self.trained_non_delayed_agent.act(curr_state)
+                estimated_action = np.random.choice(self.action_space.n)
+                self.pending_actions.append(estimated_action)
+                curr_state = self.get_next_state(state=None, action=estimated_action)
+            self.restore_initial_state()
+
+        return self.pending_actions
+
+    def store_initial_state(self):
+        if self.is_atari_env:
+            self.stored_init_state = self.orig_env.clone_state()
+        else:
+            self.stored_init_state = self.orig_env.unwrapped.state
+
+    def restore_initial_state(self):
+        if self.is_atari_env:
+            self.orig_env.restore_state(self.stored_init_state)
+        else:
+            self.orig_env.unwrapped.state = self.stored_init_state
+
+    def get_curr_state(self):
+        if self.is_atari_env:
+            curr_state = self.orig_env.ale.getScreenRGB2()
+        else:
+            curr_state = self.orig_env.unwrapped.state
+        return curr_state
+
+    def get_next_state(self, state, action):
+        next_state, _, _, _ = self.orig_env.step(action)
+        self.orig_env._elapsed_steps -= 1
+        return next_state
+
 
 class LazyFrames(object):
     def __init__(self, frames):
