@@ -1,4 +1,4 @@
-program: run_experiment.py
+program: run_experiment_rl_delay.py
 method: grid
 metric:
   goal: maximize
@@ -6,17 +6,19 @@ metric:
 parameters:
   env_name:
     values: ['MsPacman-v0']
-  use_pi:
-    values: [True, False]
+  augment_state:
+    values: [False]
+  delay_value:
+    values: [0, 5, 15]
   train_freq:
-    values: [2500, 5000, 10000]
+    values: [4]
   exploration_initial_eps:
     values: [1.0]
   learning_rate:
-    values: [0.0001]
+    values: [0.001, 0.0001]
   target_network_update_freq:
-    values: [1]
+    values: [1000]
   exploration_final_eps:
-    values: [0.01]
+    values: [0.001]
   seed:
-    values: [1, 2, 3, 4, 5]
+    values: [1, 2]

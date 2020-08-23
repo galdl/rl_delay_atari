@@ -40,8 +40,11 @@ agent_full_name = wandb.run.id + '_' + AGENT_NAME
 # checkpoint_callback = CheckpointCallback(save_freq=30*1800, save_path='./logs/',
 #                                          name_prefix=agent_full_name)
 checkpoint_callback = None
-model = DQN(LnCnnPolicy, env, verbose=1, train_freq=4, exploration_fraction=0.01, learning_rate=0.0001,
-                double_q=True)
+model = DQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, learning_rate=config.learning_rate,
+                double_q=True, target_network_update_freq=config.target_network_update_freq,
+            gamma=config.gamma, prioritized_replay=True, exploration_initial_eps=config.exploration_initial_eps,
+            exploration_final_eps=config.exploration_final_eps)
+
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 # model.save(agent_full_name)
