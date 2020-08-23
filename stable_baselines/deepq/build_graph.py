@@ -157,10 +157,21 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                                 outputs=output_actions,
                                 givens={update_eps_ph: -1.0, stochastic_ph: True},
                                 updates=[update_eps_expr])
-
-        def act(obs, stochastic=True, update_eps=-1):
-            return _act(obs, stochastic, update_eps)
-    else:
+        if not policy.is_delayed_agent:
+            def act(obs, stochastic=True, update_eps=-1):
+                return _act(obs, stochastic, update_eps)
+        else: # if delayed agent, first advance state and then apply policy on it
+            def act(obs, stochastic=True, update_eps=-1, pending_actions=None, use_learned_forward_model=False,
+                    forward_model=None):
+                last_state = obs
+                if not use_learned_forward_model:
+                    forward_model.store_initial_state()
+                for curr_action in pending_actions:
+                    last_state = forward_model.get_next_state(state=last_state, action=curr_action)
+                if not use_learned_forward_model:
+                    forward_model.restore_initial_state()
+                return _act(np.array(last_state)[None], stochastic, update_eps)
+    else: #PI mode -- completely different action function
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
 
         def act(env, update_eps=-1, gamma=1.0, max_depth=1, ignore_value_function=False):

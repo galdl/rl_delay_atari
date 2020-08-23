@@ -90,13 +90,15 @@ class FeedForwardPolicy(DQNPolicy):
 
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, layers=None,
                  cnn_extractor=nature_cnn, feature_extraction="cnn",
-                 obs_phs=None, layer_norm=False, dueling=True, act_fun=tf.nn.relu, policy_iteration_mode=False, **kwargs):
+                 obs_phs=None, layer_norm=False, dueling=True, act_fun=tf.nn.relu, policy_iteration_mode=False,
+                 is_delayed_agent=False, **kwargs):
         super(FeedForwardPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps,
                                                 n_batch, dueling=dueling, reuse=reuse,
                                                 scale=(feature_extraction == "cnn"), obs_phs=obs_phs)
 
         self._kwargs_check(feature_extraction, kwargs)
         self.policy_iteration_mode = policy_iteration_mode
+        self.is_delayed_agent = is_delayed_agent
 
         if layers is None:
             layers = [64, 64]
@@ -196,10 +198,12 @@ class LnCnnPolicy(FeedForwardPolicy):
     """
 
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch,
-                 reuse=False, obs_phs=None, dueling=True, policy_iteration_mode=False, **_kwargs):
+                 reuse=False, obs_phs=None, dueling=True, policy_iteration_mode=False,
+                 is_delayed_agent=False, **_kwargs):
         super(LnCnnPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse,
                                           feature_extraction="cnn", obs_phs=obs_phs, dueling=dueling,
-                                          layer_norm=True, policy_iteration_mode=policy_iteration_mode, **_kwargs)
+                                          layer_norm=True, policy_iteration_mode=policy_iteration_mode,
+                                          is_delayed_agent=is_delayed_agent, **_kwargs)
 
 
 class MlpPolicy(FeedForwardPolicy):

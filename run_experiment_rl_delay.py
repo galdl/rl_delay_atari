@@ -4,6 +4,7 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.deepq.policies import MlpPolicy, LnCnnPolicy, CnnPolicy
 from stable_baselines import DQN
 from stable_baselines.deepq.policy_iteration import PI
+from stable_baselines.deepq.delayed_dqn import DelayedDQN
 from stable_baselines.common.atari_wrappers import make_atari, DelayWrapper
 from stable_baselines.common.callbacks import CheckpointCallback
 # ENV_NAME = 'MsPacman-v0'
@@ -24,7 +25,7 @@ hyperparameter_defaults = dict(
     seed=1,
     env_name='MsPacman-v0',
     gamma=0.99,
-    delay_value=2,
+    delay_value=3,
     augment_state=False,
 )
 # Pass your defaults to wandb.init
@@ -40,10 +41,15 @@ agent_full_name = wandb.run.id + '_' + AGENT_NAME
 # checkpoint_callback = CheckpointCallback(save_freq=30*1800, save_path='./logs/',
 #                                          name_prefix=agent_full_name)
 checkpoint_callback = None
-model = DQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, learning_rate=config.learning_rate,
+# model = DQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, learning_rate=config.learning_rate,
+#                 double_q=True, target_network_update_freq=config.target_network_update_freq,
+#             gamma=config.gamma, prioritized_replay=True, exploration_initial_eps=config.exploration_initial_eps,
+#             exploration_final_eps=config.exploration_final_eps)
+model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, learning_rate=config.learning_rate,
                 double_q=True, target_network_update_freq=config.target_network_update_freq,
             gamma=config.gamma, prioritized_replay=True, exploration_initial_eps=config.exploration_initial_eps,
-            exploration_final_eps=config.exploration_final_eps)
+            exploration_final_eps=config.exploration_final_eps, delay_value=config.delay_value,
+                   forward_model=env)
 
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
