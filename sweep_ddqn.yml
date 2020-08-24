@@ -20,5 +20,7 @@ parameters:
     values: [1000]
   exploration_final_eps:
     values: [0.001]
+  buffer_size:
+    values: [5000, 10000, 50000, 100000]
   seed:
-    values: [1, 2]
+    values: [1]

@@ -25,7 +25,7 @@ hyperparameter_defaults = dict(
     seed=1,
     env_name='MsPacman-v0',
     gamma=0.99,
-    delay_value=3,
+    delay_value=0,
     augment_state=False,
 )
 # Pass your defaults to wandb.init
@@ -50,7 +50,6 @@ model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, le
             gamma=config.gamma, prioritized_replay=True, exploration_initial_eps=config.exploration_initial_eps,
             exploration_final_eps=config.exploration_final_eps, delay_value=config.delay_value,
                    forward_model=env)
-
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 # model.save(agent_full_name)

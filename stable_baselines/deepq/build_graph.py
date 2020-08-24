@@ -445,6 +445,10 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
             act_f, obs_phs = build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess)
 
         # q network evaluation
+        with tf.variable_scope("pretrained_model", reuse=True):
+            pretrained_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=tf.AUTO_REUSE, obs_phs=obs_phs)
+
+        # q network evaluation
         with tf.variable_scope("step_model", reuse=True, custom_getter=tf_util.outer_scope_getter("step_model")):
             step_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True, obs_phs=obs_phs)
         q_func_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=tf.get_variable_scope().name + "/model")
@@ -542,4 +546,4 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
     )
     update_target = tf_util.function([], [], updates=[update_target_expr])
 
-    return act_f, train, update_target, step_model
+    return act_f, train, update_target, step_model, pretrained_model
