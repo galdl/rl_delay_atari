@@ -224,8 +224,9 @@ class DelayedDQN(OffPolicyRLModel):
                 obs_ = self._vec_normalize_env.get_original_obs().squeeze()
 
             for timestep in tqdm(range(total_timesteps)):
-                if timestep > int(100) and timestep % 20 == 0:
+                if timestep > int(1e6) and timestep % 200000 == 0:
                     self.save_pretrained_model('pretrained_delay_0_step_' + str(timestep))
+                    # self.load_pretrained_model('pretrained_delay_0_step_' + str(timestep))
 
                 # Take action and update exploration to the newest value
                 kwargs = {}
@@ -443,16 +444,21 @@ class DelayedDQN(OffPolicyRLModel):
 
     def save_pretrained_model(self, save_path, cloudpickle=False):
         with self.graph.as_default():
-            pretrained_params = tf_util.get_globals_vars('deepq/pretrained_model')
-            parameter_values = self.sess.run(pretrained_params)
-            return_dictionary = OrderedDict((param.name, value) for param, value in zip(pretrained_params, parameter_values))
+            model_params = tf_util.get_globals_vars('deepq/model')
+            parameter_values = self.sess.run(model_params)
+            return_dictionary = OrderedDict((param.name, value) for param, value in zip(model_params, parameter_values))
             self._save_to_file(save_path, data=None, params=return_dictionary, cloudpickle=cloudpickle)
 
     def load_pretrained_model(self, save_path, cloudpickle=False):
         with self.graph.as_default():
             curr_pretrained_params = tf_util.get_globals_vars('deepq/pretrained_model')
-            _, loaded_pretrained_params = self._load_from_file(save_path)
-            for (var_name, var_val), curr_pretrained_param in zip(loaded_pretrained_params.items(), curr_pretrained_params):
-                assert curr_pretrained_param.name == var_name
-                self.sess.run(curr_pretrained_param.assign(var_val))
+            _, loaded_model_params = self._load_from_file(save_path)
+            for model_param_name, model_param_val in loaded_model_params.items():
+                for curr_pretrained_param in curr_pretrained_params:
+                    if model_param_name.split('model')[1] in curr_pretrained_param.name:
+                        self.sess.run(curr_pretrained_param.assign(model_param_val))
+                        break
+            # for (var_name, var_val), curr_pretrained_param in zip(loaded_pretrained_params.items(), curr_pretrained_params):
+            #     assert curr_pretrained_param.name == var_name
+            #     self.sess.run(curr_pretrained_param.assign(var_val))
             print('successfuly loaded pretrained network from: {}'.format(save_path))
