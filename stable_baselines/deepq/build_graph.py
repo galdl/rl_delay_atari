@@ -170,7 +170,9 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                     last_state = forward_model.get_next_state(state=last_state, action=curr_action)
                 if not use_learned_forward_model:
                     forward_model.restore_initial_state()
-                return _act(np.array(last_state)[None], stochastic, update_eps)
+                if len(last_state.shape) < 4:
+                    last_state = np.array(last_state)[None]
+                return _act(last_state, stochastic, update_eps)
     else: #PI mode -- completely different action function
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
 

@@ -169,15 +169,14 @@ class DelayedDQN(OffPolicyRLModel):
 
     def replay_buffer_delayed_add(self, obs_t, action, reward, obs_tp1, done, info):
         # Construct modified tuple by keeping old s_t with new a_{t+m}, r_{t+m} s_{t+m+1}
-        new_tuple = (obs_t, action, reward, obs_tp1, done, info)
-        self.sample_buffer.append(new_tuple)
+        new_tuple = [obs_t, action, reward, obs_tp1, done, info]
         if len(self.sample_buffer) - 1 >= self.delay_value:
             old_tuple = self.sample_buffer.popleft()
-            modified_tuple = list(deepcopy(new_tuple))
             # build time-coherent tuple from new tuple and old action
-            modified_tuple[1] = old_tuple[1]
-            modified_tuple = tuple(modified_tuple)
-            self.replay_buffer_add(*modified_tuple)
+            new_tuple[1] = old_tuple[1]
+            self.replay_buffer_add(*tuple(new_tuple))
+        else:
+            self.sample_buffer.append(tuple(new_tuple))
 
     def learn(self, total_timesteps, callback=None, log_interval=100, tb_log_name="DQN",
               reset_num_timesteps=True, replay_wrapper=None):
