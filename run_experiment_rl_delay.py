@@ -25,9 +25,9 @@ hyperparameter_defaults = dict(
     seed=1,
     env_name='MsPacman-v0',
     gamma=0.99,
-    delay_value=15,
+    delay_value=0,
     augment_state=False,
-    buffer_size=10000,
+    buffer_size=50000,
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")
