@@ -27,6 +27,7 @@ hyperparameter_defaults = dict(
     gamma=0.99,
     delay_value=15,
     augment_state=False,
+    buffer_size=10000,
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")
@@ -49,7 +50,7 @@ model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, le
                 double_q=True, target_network_update_freq=config.target_network_update_freq,
             gamma=config.gamma, prioritized_replay=True, exploration_initial_eps=config.exploration_initial_eps,
             exploration_final_eps=config.exploration_final_eps, delay_value=config.delay_value,
-                   forward_model=env)
+                   forward_model=env, buffer_size=config.buffer_size)
 
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
