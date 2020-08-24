@@ -165,6 +165,9 @@ class DelayedDQN(OffPolicyRLModel):
                 tf_util.initialize(self.sess)
                 self.update_target(sess=self.sess)
 
+                # load pretrained agent that selects initial actions before the delay kicks in
+                self.load_pretrained_model('pretrained_delay_0_step_1800000_reduced')
+
                 self.summary = tf.summary.merge_all()
 
     def replay_buffer_delayed_add(self, obs_t, action, reward, obs_tp1, done, info):
@@ -224,8 +227,8 @@ class DelayedDQN(OffPolicyRLModel):
                 obs_ = self._vec_normalize_env.get_original_obs().squeeze()
 
             for timestep in tqdm(range(total_timesteps)):
-                if timestep > int(1e6) and timestep % 200000 == 0:
-                    self.save_pretrained_model('pretrained_delay_0_step_' + str(timestep))
+                # if timestep > int(1e6) and timestep % 200000 == 0:
+                #     self.save_pretrained_model('pretrained_delay_0_step_' + str(timestep))
                     # self.load_pretrained_model('pretrained_delay_0_step_' + str(timestep))
 
                 # Take action and update exploration to the newest value
@@ -247,7 +250,7 @@ class DelayedDQN(OffPolicyRLModel):
                     kwargs['update_param_noise_scale'] = True
                 with self.sess.as_default():
                     action = self.act(np.array(obs)[None], update_eps=update_eps,
-                                      pending_actions=self.env.get_pending_actions(),
+                                      pending_actions=self.env.get_pending_actions(self.pretrained_model, self.sess),
                                       use_learned_forward_model=self.use_learned_forward_model,
                                       forward_model=self.forward_model, **kwargs)[0]
                 env_action = action

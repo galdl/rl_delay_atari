@@ -5,7 +5,7 @@ import gym
 from gym import spaces
 import cv2  # pytype:disable=import-error
 cv2.ocl.setUseOpenCL(False)
-
+import tensorflow as tf
 
 class NoopResetEnv(gym.Wrapper):
     def __init__(self, env, noop_max=30):
@@ -265,19 +265,25 @@ class DelayWrapper(gym.Env):
         self.pending_actions.clear()
         return self.orig_env.reset()
 
-    def get_pending_actions(self):
+    def get_pending_actions(self, pretrained_model, sess):
         if len(self.pending_actions) == 0 and self.delay_value > 0:
             # reconstruct anticipated trajectory using the oracle
             self.store_initial_state()
             curr_state = self.get_curr_state()
             for i in range(self.delay_value):
-                # estimated_action = self.trained_non_delayed_agent.act(curr_state)
-                estimated_action = np.random.choice(self.action_space.n)
+                estimated_action = self._pretained_act(pretrained_model, sess, curr_state)
+                # estimated_action = np.random.choice(self.action_space.n)
                 self.pending_actions.append(estimated_action)
                 curr_state = self.get_next_state(state=None, action=estimated_action)
             self.restore_initial_state()
 
         return self.pending_actions
+
+    def _pretained_act(self, pretrained_model, sess, obs):
+        feed_dict = {pretrained_model.obs_ph: np.expand_dims(obs, axis=0)}
+        best_act_op = tf.argmax(pretrained_model.q_values, axis=1)
+        best_act = sess.run(best_act_op, feed_dict)[0]
+        return best_act
 
     def store_initial_state(self):
         if self.is_atari_env:

@@ -25,7 +25,7 @@ hyperparameter_defaults = dict(
     seed=1,
     env_name='MsPacman-v0',
     gamma=0.99,
-    delay_value=0,
+    delay_value=3,
     augment_state=False,
     buffer_size=50000,
 )
