@@ -166,8 +166,11 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                 last_state = obs
                 if not use_learned_forward_model:
                     forward_model.store_initial_state()
-                for curr_action in pending_actions:
-                    last_state = forward_model.get_next_state(state=last_state, action=curr_action)
+                for i, curr_action in enumerate(pending_actions):
+                    last_state_temp = forward_model.get_next_state(state=last_state, action=curr_action)
+                    if last_state_temp is None:
+                        break
+                    last_state = last_state_temp
                 if not use_learned_forward_model:
                     forward_model.restore_initial_state()
                 if len(last_state.shape) < 4:

@@ -275,6 +275,8 @@ class DelayWrapper(gym.Env):
                 # estimated_action = np.random.choice(self.action_space.n)
                 self.pending_actions.append(estimated_action)
                 curr_state = self.get_next_state(state=None, action=estimated_action)
+                if curr_state is None:
+                    break
             self.restore_initial_state()
 
         return self.pending_actions
@@ -305,8 +307,10 @@ class DelayWrapper(gym.Env):
         return curr_state
 
     def get_next_state(self, state, action):
-        next_state, _, _, _ = self.orig_env.step(action)
+        next_state, _, done, _ = self.orig_env.step(action)
         self.orig_env._elapsed_steps -= 1
+        if done:
+            return None
         return next_state
 
 
