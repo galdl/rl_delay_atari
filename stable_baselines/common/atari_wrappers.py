@@ -289,13 +289,13 @@ class DelayWrapper(gym.Env):
 
     def store_initial_state(self):
         if self.is_atari_env:
-            self.stored_init_state = self.orig_env.clone_state()
+            self.stored_init_state = self.orig_env.clone_full_state()
         else:
             self.stored_init_state = self.orig_env.unwrapped.state
 
     def restore_initial_state(self):
         if self.is_atari_env:
-            self.orig_env.restore_state(self.stored_init_state)
+            self.orig_env.restore_full_state(self.stored_init_state)
         else:
             self.orig_env.unwrapped.state = self.stored_init_state
 
