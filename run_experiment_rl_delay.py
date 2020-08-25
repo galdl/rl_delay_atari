@@ -5,7 +5,7 @@ from stable_baselines.deepq.policies import MlpPolicy, LnCnnPolicy, CnnPolicy
 from stable_baselines import DQN
 from stable_baselines.deepq.policy_iteration import PI
 from stable_baselines.deepq.delayed_dqn import DelayedDQN
-from stable_baselines.common.atari_wrappers import make_atari, DelayWrapper
+from stable_baselines.common.atari_wrappers import make_atari, DelayWrapper, MaxAndSkipEnv
 from stable_baselines.common.callbacks import CheckpointCallback
 # ENV_NAME = 'MsPacman-v0'
 AGENT_NAME = 'agent_'# + ENV_NAME
@@ -23,7 +23,7 @@ hyperparameter_defaults = dict(
     target_network_update_freq=1000,
     exploration_final_eps=0.001,
     seed=1,
-    env_name='MsPacman-v0',
+    env_name='MsPacmanNoFrameskip-v4', #'MsPacman-v0',
     gamma=0.99,
     delay_value=15,
     augment_state=False,
@@ -34,6 +34,7 @@ wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay
 config = wandb.config
 
 env = gym.make(config.env_name)
+env = MaxAndSkipEnv(env, skip=4)
 env = DelayWrapper(env, config.delay_value)
 #TODO: check if using fixed 4-frame skip is better
 # env = make_atari('BreakoutNoFrameskip-v4')

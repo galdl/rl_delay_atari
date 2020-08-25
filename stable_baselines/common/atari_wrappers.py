@@ -109,18 +109,40 @@ class EpisodicLifeEnv(gym.Wrapper):
         return obs
 
 
-class MaxAndSkipEnv(gym.Wrapper):
+# class MaxAndSkipEnv(gym.Wrapper):
+#     def __init__(self, env, skip=4):
+#         """
+#         Return only every `skip`-th frame (frameskipping)
+#
+#         :param env: (Gym Environment) the environment
+#         :param skip: (int) number of `skip`-th frame
+#         """
+#         gym.Wrapper.__init__(self, env)
+#         # most recent raw observations (for max pooling across time steps)
+#         self._obs_buffer = np.zeros((2,) + env.observation_space.shape, dtype=env.observation_space.dtype)
+#         self._skip = skip
+
+class MaxAndSkipEnv(gym.Env):
     def __init__(self, env, skip=4):
         """
-        Return only every `skip`-th frame (frameskipping)
-
-        :param env: (Gym Environment) the environment
-        :param skip: (int) number of `skip`-th frame
-        """
-        gym.Wrapper.__init__(self, env)
+      #         Return only every `skip`-th frame (frameskipping)
+      #
+      #         :param env: (Gym Environment) the environment
+      #         :param skip: (int) number of `skip`-th frame
+      #         """
+        self.env = env
+        self.action_space = env.action_space
+        self.observation_space = env.observation_space
         # most recent raw observations (for max pooling across time steps)
         self._obs_buffer = np.zeros((2,) + env.observation_space.shape, dtype=env.observation_space.dtype)
         self._skip = skip
+        self.ale = self.env.ale
+
+    def clone_full_state(self):
+        return self.env.clone_full_state()
+
+    def restore_full_state(self, state):
+        return self.env.restore_full_state(state)
 
     def step(self, action):
         """
