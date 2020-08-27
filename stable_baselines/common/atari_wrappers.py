@@ -137,6 +137,7 @@ class MaxAndSkipEnv(gym.Env):
         self._obs_buffer = np.zeros((2,) + env.observation_space.shape, dtype=env.observation_space.dtype)
         self._skip = skip
         self.ale = self.env.ale
+        self._elapsed_steps = self.env._elapsed_steps
 
     def clone_full_state(self):
         return self.env.clone_full_state()
