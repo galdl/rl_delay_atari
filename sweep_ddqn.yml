@@ -9,7 +9,7 @@ parameters:
   augment_state:
     values: [False]
   delay_value:
-    values: [0, 3, 5, 7, 10, 15, 30, 50]
+    values: [0, 5, 10, 15, 50]
   train_freq:
     values: [4]
   exploration_initial_eps:
@@ -21,6 +21,8 @@ parameters:
   exploration_final_eps:
     values: [0.001]
   buffer_size:
-    values: [10000]
+    values: [10000, 25000, 50000]
   seed:
     values: [1]
+  prioritized_replay:
+    values: [False, True]
