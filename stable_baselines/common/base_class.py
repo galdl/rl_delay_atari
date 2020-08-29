@@ -20,7 +20,8 @@ from stable_baselines.common.vec_env import (VecEnvWrapper, VecEnv, DummyVecEnv,
                                              VecNormalize, unwrap_vec_normalize)
 from stable_baselines.common.callbacks import BaseCallback, CallbackList, ConvertCallback
 from stable_baselines import logger
-
+# from run_experiment import RESHAPED_RESOLUTION
+from gym.spaces import Box
 
 class BaseRLModel(ABC):
     """
@@ -70,7 +71,8 @@ class BaseRLModel(ABC):
                     print("Creating environment from the given name, wrapped in a DummyVecEnv.")
                 self.env = env = DummyVecEnv([lambda: gym.make(env)])
 
-            self.observation_space = env.observation_space
+            # self.observation_space = env.observation_space
+            self.observation_space = Box(low=0, high=255, shape=(256, 256, 3), dtype=np.uint8)
             self.action_space = env.action_space
             if requires_vec_env:
                 if isinstance(env, VecEnv):

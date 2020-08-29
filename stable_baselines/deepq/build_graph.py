@@ -68,7 +68,8 @@ from gym.spaces import MultiDiscrete
 from stable_baselines.common import tf_util
 import numpy as np
 from copy import deepcopy
-
+from pix2pix import pix2pix_model
+import cv2
 
 def scope_vars(scope, trainable_only=False):
     """
@@ -135,7 +136,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
     :param update_eps_ph: (TensorFlow Tensor) the update_eps placeholder
     :param sess: (TensorFlow session) The current TensorFlow session
     :return: (function (TensorFlow Tensor, bool, float): TensorFlow Tensor, (TensorFlow Tensor, TensorFlow Tensor)
-        act function to select and action given observation (See the top of the file for details),
+        act function to select an action given observation (See the top of the file for details),
         A tuple containing the observation placeholder and the processed observation placeholder respectively.
     """
     eps = tf.get_variable("eps", (), initializer=tf.constant_initializer(0))
@@ -175,6 +176,7 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                     forward_model.restore_initial_state()
                 if len(last_state.shape) < 4:
                     last_state = np.array(last_state)[None]
+                last_state = cv2.resize(last_state, dsize=(256, 256), interpolation=cv2.INTER_CUBIC)
                 return _act(last_state, stochastic, update_eps)
     else: #PI mode -- completely different action function
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
@@ -449,9 +451,14 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
         else:
             act_f, obs_phs = build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess)
 
-        # q network evaluation
+        # pretrained model
         with tf.variable_scope("pretrained_model", reuse=True):
             pretrained_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=tf.AUTO_REUSE, obs_phs=obs_phs)
+
+        # forward model
+        with tf.variable_scope("forward_model", reuse=True, custom_getter=tf_util.outer_scope_getter("step_model")):
+            # forward_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True, obs_phs=obs_phs)
+            forward_model = pix2pix_model.create_model(inputs=obs_phs[1], targets=obs_phs[1])
 
         # q network evaluation
         with tf.variable_scope("step_model", reuse=True, custom_getter=tf_util.outer_scope_getter("step_model")):
@@ -551,4 +558,4 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
     )
     update_target = tf_util.function([], [], updates=[update_target_expr])
 
-    return act_f, train, update_target, step_model, pretrained_model
+    return act_f, train, update_target, step_model, pretrained_model, forward_model

@@ -16,6 +16,7 @@ from tqdm import tqdm
 from collections import deque
 from copy import deepcopy
 from collections import OrderedDict
+import cv2
 
 class DelayedDQN(OffPolicyRLModel):
     """
@@ -146,7 +147,8 @@ class DelayedDQN(OffPolicyRLModel):
 
                 optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
 
-                self.act, self._train_step, self.update_target, self.step_model, self.pretrained_model = build_train(
+                self.act, self._train_step, self.update_target, self.step_model, self.pretrained_model,\
+                self.forward_model = build_train(
                     q_func=partial(self.policy, **self.policy_kwargs),
                     ob_space=self.observation_space,
                     ac_space=self.action_space,
@@ -256,7 +258,7 @@ class DelayedDQN(OffPolicyRLModel):
                 env_action = action
                 reset = False
                 new_obs, rew, done, info = self.env.step(env_action)
-
+                new_obs = cv2.resize(new_obs, dsize=(256, 256), interpolation=cv2.INTER_CUBIC)
                 self.num_timesteps += 1
 
                 # Stop training if return value is False
