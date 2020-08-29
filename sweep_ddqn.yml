@@ -27,7 +27,7 @@ parameters:
   prioritized_replay:
     values: [True]
   fixed_frame_skip:
-    values: [True]
+    values: [False, True]
   clone_full_state:
     values: [False]
   load_pretrained_agent:
