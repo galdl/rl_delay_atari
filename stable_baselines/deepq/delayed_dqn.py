@@ -65,7 +65,7 @@ class DelayedDQN(OffPolicyRLModel):
                  prioritized_replay_eps=1e-6, param_noise=False,
                  n_cpu_tf_sess=None, verbose=0, tensorboard_log=None,
                  _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None,
-                 delay_value=0, forward_model=None):
+                 delay_value=0, forward_model=None, load_pretrained_agent=True):
 
         policy = partial(policy, is_delayed_agent=True)
 
@@ -103,7 +103,7 @@ class DelayedDQN(OffPolicyRLModel):
         else:
             self.use_learned_forward_model = False
             self.forward_model = forward_model
-
+        self.load_pretrained_agent = load_pretrained_agent
         self.graph = None
         self.sess = None
         self._train_step = None
@@ -166,7 +166,8 @@ class DelayedDQN(OffPolicyRLModel):
                 self.update_target(sess=self.sess)
 
                 # load pretrained agent that selects initial actions before the delay kicks in
-                self.load_pretrained_model('pretrained_delay_0_step_1800000_reduced')
+                if self.load_pretrained_agent:
+                    self.load_pretrained_model('pretrained_delay_0_step_1800000_reduced')
 
                 self.summary = tf.summary.merge_all()
 

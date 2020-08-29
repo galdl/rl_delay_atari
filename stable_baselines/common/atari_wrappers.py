@@ -146,6 +146,12 @@ class MaxAndSkipEnv(gym.Env):
     def restore_full_state(self, state):
         return self.env.restore_full_state(state)
 
+    def clone_state(self):
+        return self.env.clone_state()
+
+    def restore_state(self, state):
+        return self.env.restore_state(state)
+
     def step(self, action):
         """
         Step the environment with the given action
@@ -265,7 +271,7 @@ class ScaledFloatFrame(gym.ObservationWrapper):
         return np.array(observation).astype(np.float32) / 255.0
 
 class DelayWrapper(gym.Env):
-    def __init__(self, env, delay_value):
+    def __init__(self, env, delay_value, clone_full_state):
         self.orig_env = env
         self.delay_value = delay_value
         self.pending_actions = deque()
@@ -273,6 +279,7 @@ class DelayWrapper(gym.Env):
         self.is_atari_env = True
         self.action_space = self.orig_env.action_space
         self.observation_space = self.orig_env.observation_space
+        self.clone_full_state = clone_full_state
 
     def step(self, action):
         if self.delay_value > 0:
@@ -313,13 +320,19 @@ class DelayWrapper(gym.Env):
 
     def store_initial_state(self):
         if self.is_atari_env:
-            self.stored_init_state = self.orig_env.clone_full_state()
+            if self.clone_full_state:
+                self.stored_init_state = self.orig_env.clone_full_state()
+            else:
+                self.stored_init_state = self.orig_env.clone_state()
         else:
             self.stored_init_state = self.orig_env.unwrapped.state
 
     def restore_initial_state(self):
         if self.is_atari_env:
-            self.orig_env.restore_full_state(self.stored_init_state)
+            if self.clone_full_state:
+                self.orig_env.restore_full_state(self.stored_init_state)
+            else:
+                self.orig_env.restore_state(self.stored_init_state)
         else:
             self.orig_env.unwrapped.state = self.stored_init_state
 

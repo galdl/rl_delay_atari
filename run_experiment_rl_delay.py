@@ -28,15 +28,23 @@ hyperparameter_defaults = dict(
     delay_value=15,
     augment_state=False,
     buffer_size=50000,
-    prioritized_replay=True
+    prioritized_replay=True,
+    fixed_frame_skip=True,
+    clone_full_state=False,
+    load_pretrained_agent=True,
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")
 config = wandb.config
+if config.fixed_frame_skip:
+    env_name = 'MsPacmanNoFrameskip-v4'
+    env = gym.make(config.env_name)
+    env = MaxAndSkipEnv(env, skip=4)
+else:
+    env_name = 'MsPacman-v0'
+    env = gym.make(config.env_name)
 
-env = gym.make(config.env_name)
-env = MaxAndSkipEnv(env, skip=4)
-env = DelayWrapper(env, config.delay_value)
+env = DelayWrapper(env, config.delay_value, config.clone_full_state)
 #TODO: check if using fixed 4-frame skip is better
 # env = make_atari('BreakoutNoFrameskip-v4')
 agent_full_name = wandb.run.id + '_' + AGENT_NAME
@@ -52,7 +60,7 @@ model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, le
                 double_q=True, target_network_update_freq=config.target_network_update_freq,
             gamma=config.gamma, prioritized_replay=config.prioritized_replay, exploration_initial_eps=config.exploration_initial_eps,
             exploration_final_eps=config.exploration_final_eps, delay_value=config.delay_value,
-                   forward_model=env, buffer_size=config.buffer_size)
+                   forward_model=env, buffer_size=config.buffer_size, load_pretrained_agent=config.load_pretrained_agent)
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 # model.save(agent_full_name)
