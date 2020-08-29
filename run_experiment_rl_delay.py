@@ -31,18 +31,18 @@ hyperparameter_defaults = dict(
     prioritized_replay=True,
     fixed_frame_skip=True,
     clone_full_state=False,
-    load_pretrained_agent=True,
+    load_pretrained_agent=False,
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")
 config = wandb.config
 if config.fixed_frame_skip:
     env_name = 'MsPacmanNoFrameskip-v4'
-    env = gym.make(config.env_name)
+    env = gym.make(env_name)
     env = MaxAndSkipEnv(env, skip=4)
 else:
     env_name = 'MsPacman-v0'
-    env = gym.make(config.env_name)
+    env = gym.make(env_name)
 
 env = DelayWrapper(env, config.delay_value, config.clone_full_state)
 #TODO: check if using fixed 4-frame skip is better
