@@ -29,7 +29,7 @@ parameters:
   fixed_frame_skip:
     values: [False, True]
   clone_full_state:
-    values: [False]
+    values: [False, True]
   load_pretrained_agent:
     values: [False]
 
