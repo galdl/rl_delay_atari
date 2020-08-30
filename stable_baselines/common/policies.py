@@ -119,6 +119,9 @@ class BasePolicy(ABC):
             else:
                 self._obs_ph, self._processed_obs = obs_phs
 
+            # placeholder for next_obs forward_model train
+            self.next_obs_ph = observation_input(ob_space, n_batch, scale=scale)
+
             self._action_ph = None
             if add_action_ph:
                 self._action_ph = tf.placeholder(dtype=ac_space.dtype, shape=(n_batch,) + ac_space.shape,

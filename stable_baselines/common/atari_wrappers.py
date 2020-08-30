@@ -302,10 +302,11 @@ class DelayWrapper(gym.Env):
             self.store_initial_state()
             curr_state = self.get_curr_state()
             for i in range(self.delay_value):
+                curr_state = cv2.resize(curr_state, dsize=(256, 256), interpolation=cv2.INTER_CUBIC)
                 estimated_action = self._pretained_act(pretrained_model, sess, curr_state)
                 # estimated_action = np.random.choice(self.action_space.n)
                 self.pending_actions.append(estimated_action)
-                curr_state = self.get_next_state(state=None, action=estimated_action)
+                curr_state = self.get_next_state(obs=None, action=estimated_action)
                 if curr_state is None:
                     break
             self.restore_initial_state()
@@ -343,7 +344,7 @@ class DelayWrapper(gym.Env):
             curr_state = self.orig_env.unwrapped.state
         return curr_state
 
-    def get_next_state(self, state, action):
+    def get_next_state(self, obs, action):
         next_state, _, done, _ = self.orig_env.step(action)
         self.orig_env._elapsed_steps -= 1
         if done:

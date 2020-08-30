@@ -32,6 +32,7 @@ hyperparameter_defaults = dict(
     fixed_frame_skip=True,
     clone_full_state=False,
     load_pretrained_agent=False,
+    use_learned_forward_model=True,
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")
@@ -60,7 +61,8 @@ model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, le
                 double_q=True, target_network_update_freq=config.target_network_update_freq,
             gamma=config.gamma, prioritized_replay=config.prioritized_replay, exploration_initial_eps=config.exploration_initial_eps,
             exploration_final_eps=config.exploration_final_eps, delay_value=config.delay_value,
-                   forward_model=env, buffer_size=config.buffer_size, load_pretrained_agent=config.load_pretrained_agent)
+                   use_learned_forward_model=config.use_learned_forward_model, buffer_size=config.buffer_size,
+                   load_pretrained_agent=config.load_pretrained_agent)
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 # model.save(agent_full_name)

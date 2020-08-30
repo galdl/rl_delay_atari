@@ -18,6 +18,24 @@ from copy import deepcopy
 from collections import OrderedDict
 import cv2
 
+class ForwardModel:
+    def __init__(self, learned_model, obs_ph, next_obs_ph, sess):
+        self.learned_model = learned_model
+        self.obs_ph = obs_ph
+        self.next_obs_ph = next_obs_ph
+        self.sess = sess
+
+    def get_next_state(self, obs, action):
+        feed_dict = {self.obs_ph: np.expand_dims(obs, axis=0)}
+        next_obs = self.sess.run(self.learned_model.outputs, feed_dict)[0]
+        return next_obs
+
+    def store_initial_state(self):
+        pass
+
+    def restore_initial_state(self):
+        pass
+
 class DelayedDQN(OffPolicyRLModel):
     """
     The DQN model class.
@@ -66,7 +84,7 @@ class DelayedDQN(OffPolicyRLModel):
                  prioritized_replay_eps=1e-6, param_noise=False,
                  n_cpu_tf_sess=None, verbose=0, tensorboard_log=None,
                  _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None,
-                 delay_value=0, forward_model=None, load_pretrained_agent=True):
+                 delay_value=0, use_learned_forward_model=False, load_pretrained_agent=True):
 
         policy = partial(policy, is_delayed_agent=True)
 
@@ -95,15 +113,7 @@ class DelayedDQN(OffPolicyRLModel):
         self.double_q = double_q
         self.delay_value = delay_value
         self.sample_buffer = deque()
-        self.forward_model = forward_model
-        if self.forward_model is None:
-            self.use_learned_forward_model = True
-            #TODO: define and build forward_model here
-            # keras_forward_model = self._build_model(loss='mse', input_size=self.state_size + 1, output_size=self.state_size)
-            # self.forward_model = ForwardModel(keras_forward_model)
-        else:
-            self.use_learned_forward_model = False
-            self.forward_model = forward_model
+        self.use_learned_forward_model = use_learned_forward_model
         self.load_pretrained_agent = load_pretrained_agent
         self.graph = None
         self.sess = None
@@ -148,7 +158,7 @@ class DelayedDQN(OffPolicyRLModel):
                 optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
 
                 self.act, self._train_step, self.update_target, self.step_model, self.pretrained_model,\
-                self.forward_model = build_train(
+                learned_forward_model, obs_ph_float, next_obs_ph_float = build_train(
                     q_func=partial(self.policy, **self.policy_kwargs),
                     ob_space=self.observation_space,
                     ac_space=self.action_space,
@@ -158,8 +168,14 @@ class DelayedDQN(OffPolicyRLModel):
                     param_noise=self.param_noise,
                     sess=self.sess,
                     full_tensorboard_log=self.full_tensorboard_log,
-                    double_q=self.double_q
+                    double_q=self.double_q,
+                    build_forward_model=self.use_learned_forward_model,
                 )
+                if self.use_learned_forward_model:
+                    self.forward_model = ForwardModel(learned_model=learned_forward_model, obs_ph=obs_ph_float,
+                                                      next_obs_ph=next_obs_ph_float, sess=self.sess)
+                else:
+                    self.forward_model = self.env
                 self.proba_step = self.step_model.proba_step
                 self.params = tf_util.get_trainable_vars("deepq")
 
