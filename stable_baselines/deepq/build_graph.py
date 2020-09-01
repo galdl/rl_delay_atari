@@ -404,7 +404,7 @@ def build_act_with_param_noise(q_func, ob_space, ac_space, stochastic_ph, update
 def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=None,
                 gamma=1.0, double_q=True, scope="deepq", reuse=None,
                 param_noise=False, param_noise_filter_func=None, full_tensorboard_log=False,
-                build_forward_model=False):
+                build_forward_model=False, pix2pix_lr=0.0002, pix2pix_beta1=0.5,):
     """
     Creates the train function:
 
@@ -460,7 +460,8 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
             # forward model
             with tf.variable_scope("forward_model", reuse=True, custom_getter=tf_util.outer_scope_getter("forward_model")):
                 # forward_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True, obs_phs=obs_phs)
-                forward_model = pix2pix_model.create_model(inputs=obs_ph_float, targets=next_obs_ph_float)
+                forward_model = pix2pix_model.create_model(inputs=obs_ph_float, targets=next_obs_ph_float,
+                                                           lr=pix2pix_lr, beta1=pix2pix_beta1)
 
         # q network evaluation
         with tf.variable_scope("step_model", reuse=True, custom_getter=tf_util.outer_scope_getter("step_model")):

@@ -34,6 +34,8 @@ hyperparameter_defaults = dict(
     load_pretrained_agent=False,
     use_learned_forward_model=True,
     q_to_f_model_freq_ratio=4,
+    pix2pix_lr=0.0002,
+    pix2pix_beta1=0.5
 )
 
 # Pass your defaults to wandb.init
@@ -65,7 +67,8 @@ model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, le
             exploration_final_eps=config.exploration_final_eps, delay_value=config.delay_value,
                    use_learned_forward_model=config.use_learned_forward_model, buffer_size=config.buffer_size,
                    load_pretrained_agent=config.load_pretrained_agent,
-                   q_to_f_model_freq_ratio=config.q_to_f_model_freq_ratio)
+                   q_to_f_model_freq_ratio=config.q_to_f_model_freq_ratio, pix2pix_lr=config.pix2pix_lr,
+                   pix2pix_beta1=config.pix2pix_beta1)
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 # model.save(agent_full_name)

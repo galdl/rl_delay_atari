@@ -9,7 +9,7 @@ parameters:
   augment_state:
     values: [False]
   delay_value:
-    values: [0, 5, 15, 50]
+    values: [5]
   train_freq:
     values: [4]
   exploration_initial_eps:
@@ -27,9 +27,12 @@ parameters:
   prioritized_replay:
     values: [True]
   fixed_frame_skip:
-    values: [False, True]
+    values: [True]
   clone_full_state:
     values: [False]
   load_pretrained_agent:
     values: [False]
-
+  pix2pix_lr:
+    values: [0.01, 0.001, 0.0002]
+  pix2pix_beta1:
+    values: [0.1, 0.5, 0.9]

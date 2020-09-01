@@ -91,7 +91,8 @@ class DelayedDQN(OffPolicyRLModel):
                  prioritized_replay_eps=1e-6, param_noise=False,
                  n_cpu_tf_sess=None, verbose=0, tensorboard_log=None,
                  _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None,
-                 delay_value=0, use_learned_forward_model=False, load_pretrained_agent=True, q_to_f_model_freq_ratio=4):
+                 delay_value=0, use_learned_forward_model=False, load_pretrained_agent=True, q_to_f_model_freq_ratio=4,
+                 pix2pix_lr=0.0002, pix2pix_beta1=0.5):
 
         policy = partial(policy, is_delayed_agent=True)
 
@@ -123,6 +124,9 @@ class DelayedDQN(OffPolicyRLModel):
         self.use_learned_forward_model = use_learned_forward_model
         self.load_pretrained_agent = load_pretrained_agent
         self.q_to_f_model_freq_ratio = q_to_f_model_freq_ratio
+        self.pix2pix_lr = pix2pix_lr
+        self.pix2pix_beta1 = pix2pix_beta1
+
         self.graph = None
         self.sess = None
         self._train_step = None
@@ -178,6 +182,8 @@ class DelayedDQN(OffPolicyRLModel):
                     full_tensorboard_log=self.full_tensorboard_log,
                     double_q=self.double_q,
                     build_forward_model=self.use_learned_forward_model,
+                    pix2pix_lr=self.pix2pix_lr,
+                    pix2pix_beta1=self.pix2pix_beta1
                 )
                 if self.use_learned_forward_model:
                     self.forward_model = ForwardModel(learned_model=learned_forward_model, obs_ph=self.obs_ph_float,

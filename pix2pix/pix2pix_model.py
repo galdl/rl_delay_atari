@@ -149,7 +149,7 @@ def discrim_conv(batch_input, out_channels, stride):
     return tf.layers.conv2d(padded_input, out_channels, kernel_size=4, strides=(stride, stride), padding="valid", kernel_initializer=tf.random_normal_initializer(0, 0.02),
                             reuse=tf.AUTO_REUSE)
 
-def create_model(inputs, targets, ac_space=None):
+def create_model(inputs, targets, ac_space=None, lr=0.0002, beta1=0.5):
     def create_discriminator(discrim_inputs, discrim_targets):
         n_layers = 3
         layers = []
@@ -215,7 +215,7 @@ def create_model(inputs, targets, ac_space=None):
     tf.init_scope()
     with tf.name_scope("discriminator_train"):
         discrim_tvars = [var for var in tf.trainable_variables() if "discriminator" in var.name]
-        discrim_optim = tf.train.AdamOptimizer(a.lr, a.beta1)
+        discrim_optim = tf.train.AdamOptimizer(lr, beta1)
         discrim_grads_and_vars = discrim_optim.compute_gradients(discrim_loss, var_list=discrim_tvars)
         with tf.variable_scope(tf.get_variable_scope(), reuse=tf.AUTO_REUSE):
             discrim_train = discrim_optim.apply_gradients(discrim_grads_and_vars)
@@ -223,7 +223,7 @@ def create_model(inputs, targets, ac_space=None):
     with tf.name_scope("generator_train"):
         with tf.control_dependencies([discrim_train]):
             gen_tvars = [var for var in tf.trainable_variables() if "generator" in var.name]
-            gen_optim = tf.train.AdamOptimizer(a.lr, a.beta1)
+            gen_optim = tf.train.AdamOptimizer(lr, beta1)
             gen_grads_and_vars = gen_optim.compute_gradients(gen_loss, var_list=gen_tvars)
             with tf.variable_scope(tf.get_variable_scope(), reuse=tf.AUTO_REUSE):
                 gen_train = gen_optim.apply_gradients(gen_grads_and_vars)
