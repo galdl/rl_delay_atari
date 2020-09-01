@@ -36,6 +36,13 @@ class ForwardModel:
     def restore_initial_state(self):
         pass
 
+    def update(self, obses_t, actions, obses_tp1):
+        feed_dict = {self.obs_ph: obses_t, self.next_obs_ph: obses_tp1}
+        ops = [self.learned_model.train, self.learned_model.discrim_loss, self.learned_model.gen_loss_GAN,
+               self.learned_model.gen_loss_L1]
+        _, discrim_loss, gen_loss_GAN, gen_loss_L1 = self.sess.run(ops, feed_dict)
+        return discrim_loss, gen_loss_GAN, gen_loss_L1
+
 class DelayedDQN(OffPolicyRLModel):
     """
     The DQN model class.
@@ -158,7 +165,7 @@ class DelayedDQN(OffPolicyRLModel):
                 optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate)
 
                 self.act, self._train_step, self.update_target, self.step_model, self.pretrained_model,\
-                learned_forward_model, obs_ph_float, next_obs_ph_float = build_train(
+                learned_forward_model, self.obs_ph_float, self.next_obs_ph_float = build_train(
                     q_func=partial(self.policy, **self.policy_kwargs),
                     ob_space=self.observation_space,
                     ac_space=self.action_space,
@@ -172,8 +179,8 @@ class DelayedDQN(OffPolicyRLModel):
                     build_forward_model=self.use_learned_forward_model,
                 )
                 if self.use_learned_forward_model:
-                    self.forward_model = ForwardModel(learned_model=learned_forward_model, obs_ph=obs_ph_float,
-                                                      next_obs_ph=next_obs_ph_float, sess=self.sess)
+                    self.forward_model = ForwardModel(learned_model=learned_forward_model, obs_ph=self.obs_ph_float,
+                                                      next_obs_ph=self.next_obs_ph_float, sess=self.sess)
                 else:
                     self.forward_model = self.env
                 self.proba_step = self.step_model.proba_step
@@ -234,6 +241,7 @@ class DelayedDQN(OffPolicyRLModel):
 
             episode_rewards = [0.0]
             episode_successes = []
+            f_model_losses = {'discrim_loss': 0, 'gen_loss_GAN': 0, 'gen_loss_L1': 0, 'count': 0}
 
             callback.on_training_start(locals(), globals())
             callback.on_rollout_start()
@@ -313,7 +321,14 @@ class DelayedDQN(OffPolicyRLModel):
                     if not isinstance(self.env, VecEnv):
                         obs = self.env.reset()
                     self.sample_buffer.clear()
-                    wandb.log({'episodic_reward': episode_rewards[-1]})
+                    loss_dict = {}
+                    if self.use_learned_forward_model:
+                        loss_dict['discrim_loss'] = f_model_losses['discrim_loss'] / f_model_losses['count']
+                        loss_dict['gen_loss_GAN'] = f_model_losses['gen_loss_GAN'] / f_model_losses['count']
+                        loss_dict['gen_loss_L1'] = f_model_losses['gen_loss_L1'] / f_model_losses['count']
+                    reward_dict = {'episodic_reward': episode_rewards[-1]}
+                    report_dict = dict(reward_dict, **loss_dict)
+                    wandb.log(report_dict)
                     # print('episodic_reward: {}'.format(episode_rewards[-1]))
                     episode_rewards.append(0.0)
                     reset = True
@@ -362,6 +377,12 @@ class DelayedDQN(OffPolicyRLModel):
                         new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
                         assert isinstance(self.replay_buffer, PrioritizedReplayBuffer)
                         self.replay_buffer.update_priorities(batch_idxes, new_priorities)
+
+                    discrim_loss, gen_loss_GAN, gen_loss_L1 = self.forward_model.update(obses_t, actions, obses_tp1)
+                    f_model_losses['discrim_loss'] += discrim_loss
+                    f_model_losses['gen_loss_GAN'] += gen_loss_GAN
+                    f_model_losses['gen_loss_L1'] += gen_loss_L1
+                    f_model_losses['count'] += 1
 
                     callback.on_rollout_start()
 

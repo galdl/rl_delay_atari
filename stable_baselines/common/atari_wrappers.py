@@ -351,6 +351,9 @@ class DelayWrapper(gym.Env):
             return None
         return next_state
 
+    def update(self, obses_t, actions, obses_tp1):
+        return -1, -1, -1
+
 
 class LazyFrames(object):
     def __init__(self, frames):

@@ -228,7 +228,7 @@ def create_model(inputs, targets, ac_space=None):
             with tf.variable_scope(tf.get_variable_scope(), reuse=tf.AUTO_REUSE):
                 gen_train = gen_optim.apply_gradients(gen_grads_and_vars)
 
-    ema = tf.train.ExponentialMovingAverage(decay=0.99)
+    ema = tf.train.ExponentialMovingAverage(decay=1e-6) # originally: decay=0.99, but wandb already does the smoothing
     with tf.variable_scope(tf.get_variable_scope(), reuse=tf.AUTO_REUSE):
         update_losses = ema.apply([discrim_loss, gen_loss_GAN, gen_loss_L1])
 
