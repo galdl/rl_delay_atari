@@ -322,7 +322,7 @@ class DelayedDQN(OffPolicyRLModel):
                         obs = self.env.reset()
                     self.sample_buffer.clear()
                     loss_dict = {}
-                    if self.use_learned_forward_model:
+                    if self.use_learned_forward_model and f_model_losses['count'] > 0:
                         loss_dict['discrim_loss'] = f_model_losses['discrim_loss'] / f_model_losses['count']
                         loss_dict['gen_loss_GAN'] = f_model_losses['gen_loss_GAN'] / f_model_losses['count']
                         loss_dict['gen_loss_L1'] = f_model_losses['gen_loss_L1'] / f_model_losses['count']
