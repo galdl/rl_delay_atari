@@ -91,7 +91,7 @@ class DelayedDQN(OffPolicyRLModel):
                  prioritized_replay_eps=1e-6, param_noise=False,
                  n_cpu_tf_sess=None, verbose=0, tensorboard_log=None,
                  _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None,
-                 delay_value=0, use_learned_forward_model=False, load_pretrained_agent=True):
+                 delay_value=0, use_learned_forward_model=False, load_pretrained_agent=True, q_to_f_model_freq_ratio=4):
 
         policy = partial(policy, is_delayed_agent=True)
 
@@ -122,6 +122,7 @@ class DelayedDQN(OffPolicyRLModel):
         self.sample_buffer = deque()
         self.use_learned_forward_model = use_learned_forward_model
         self.load_pretrained_agent = load_pretrained_agent
+        self.q_to_f_model_freq_ratio = q_to_f_model_freq_ratio
         self.graph = None
         self.sess = None
         self._train_step = None
@@ -378,11 +379,12 @@ class DelayedDQN(OffPolicyRLModel):
                         assert isinstance(self.replay_buffer, PrioritizedReplayBuffer)
                         self.replay_buffer.update_priorities(batch_idxes, new_priorities)
 
-                    discrim_loss, gen_loss_GAN, gen_loss_L1 = self.forward_model.update(obses_t, actions, obses_tp1)
-                    f_model_losses['discrim_loss'] += discrim_loss
-                    f_model_losses['gen_loss_GAN'] += gen_loss_GAN
-                    f_model_losses['gen_loss_L1'] += gen_loss_L1
-                    f_model_losses['count'] += 1
+                    if self.num_timesteps % (self.train_freq * self.q_to_f_model_freq_ratio) == 0:
+                        discrim_loss, gen_loss_GAN, gen_loss_L1 = self.forward_model.update(obses_t, actions, obses_tp1)
+                        f_model_losses['discrim_loss'] += discrim_loss
+                        f_model_losses['gen_loss_GAN'] += gen_loss_GAN
+                        f_model_losses['gen_loss_L1'] += gen_loss_L1
+                        f_model_losses['count'] += 1
 
                     callback.on_rollout_start()
 
