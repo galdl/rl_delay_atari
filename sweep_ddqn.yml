@@ -1,8 +1,8 @@
 program: run_experiment_rl_delay.py
 method: grid
 metric:
-  goal: maximize
-  name: episodic_reward
+  goal: minimize
+  name: gen_loss_L1
 parameters:
   env_name:
     values: ['MsPacmanNoFrameskip-v4'] #['MsPacman-v0']
@@ -36,3 +36,5 @@ parameters:
     values: [0.01, 0.001, 0.0002]
   pix2pix_beta1:
     values: [0.1, 0.5, 0.9]
+  use_learned_forward_model:
+    values: [True]

@@ -333,6 +333,7 @@ class DelayedDQN(OffPolicyRLModel):
                         loss_dict['discrim_loss'] = f_model_losses['discrim_loss'] / f_model_losses['count']
                         loss_dict['gen_loss_GAN'] = f_model_losses['gen_loss_GAN'] / f_model_losses['count']
                         loss_dict['gen_loss_L1'] = f_model_losses['gen_loss_L1'] / f_model_losses['count']
+                    print('loss_dict: {}'.format(loss_dict))
                     reward_dict = {'episodic_reward': episode_rewards[-1]}
                     report_dict = dict(reward_dict, **loss_dict)
                     wandb.log(report_dict)
@@ -386,7 +387,7 @@ class DelayedDQN(OffPolicyRLModel):
                         self.replay_buffer.update_priorities(batch_idxes, new_priorities)
 
                     if self.num_timesteps % (self.train_freq * self.q_to_f_model_freq_ratio) == 0:
-                        discrim_loss, gen_loss_GAN, gen_loss_L1 = self.forward_model.update(obses_t, actions, obses_tp1)
+                        discrim_loss, gen_loss_GAN, gen_loss_L1 = self.forward_model.update(obses_t, actions, obses_t)
                         f_model_losses['discrim_loss'] += discrim_loss
                         f_model_losses['gen_loss_GAN'] += gen_loss_GAN
                         f_model_losses['gen_loss_L1'] += gen_loss_L1
