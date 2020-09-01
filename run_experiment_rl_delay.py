@@ -34,6 +34,7 @@ hyperparameter_defaults = dict(
     load_pretrained_agent=False,
     use_learned_forward_model=True,
 )
+
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")
 config = wandb.config
