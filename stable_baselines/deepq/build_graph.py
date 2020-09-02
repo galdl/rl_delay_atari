@@ -70,6 +70,7 @@ import numpy as np
 from copy import deepcopy
 from pix2pix import pix2pix_model
 import cv2
+import collections
 
 def scope_vars(scope, trainable_only=False):
     """
@@ -458,10 +459,16 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
         next_obs_ph_float = tf.cast(next_obs_phs[0], tf.float32)
         if build_forward_model:
             # forward model
-            with tf.variable_scope("forward_model", reuse=True, custom_getter=tf_util.outer_scope_getter("forward_model")):
+            config = collections.namedtuple("config", "separable_conv, ngf, ndf, lr, beta1, l1_weight, gan_weight")
+            config.ngf = 64
+            config.ndf = 64
+            config.separable_conv = True
+            config.l1_weight = 100.0
+            config.gan_weight = 1.0
+            with tf.variable_scope("forward_model", reuse=tf.AUTO_REUSE, custom_getter=tf_util.outer_scope_getter("forward_model")):
                 # forward_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True, obs_phs=obs_phs)
                 forward_model = pix2pix_model.create_model(inputs=obs_ph_float, targets=next_obs_ph_float,
-                                                           lr=pix2pix_lr, beta1=pix2pix_beta1)
+                                                           lr=pix2pix_lr, beta1=pix2pix_beta1, config=config)
 
         # q network evaluation
         with tf.variable_scope("step_model", reuse=True, custom_getter=tf_util.outer_scope_getter("step_model")):
