@@ -81,8 +81,7 @@ model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, le
                    use_learned_forward_model=config.use_learned_forward_model, buffer_size=config.buffer_size,
                    load_pretrained_agent=config.load_pretrained_agent,
                    q_to_f_model_freq_ratio=config.q_to_f_model_freq_ratio, pix2pix_config=pix2pix_config)
-                   q_to_f_model_freq_ratio=config.q_to_f_model_freq_ratio, pix2pix_lr=config.pix2pix_lr,
-                   pix2pix_beta1=config.pix2pix_beta1)
+
 # model = DelayedDQN.load('./logs/3dtmxvsk_agent__27000_steps', env=env, use_learned_forward_model=config.use_learned_forward_model,
 #                    load_pretrained_agent=config.load_pretrained_agent)
 
