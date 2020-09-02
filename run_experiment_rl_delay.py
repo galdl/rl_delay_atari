@@ -5,7 +5,7 @@ from stable_baselines.deepq.policies import MlpPolicy, LnCnnPolicy, CnnPolicy
 from stable_baselines import DQN
 from stable_baselines.deepq.policy_iteration import PI
 from stable_baselines.deepq.delayed_dqn import DelayedDQN
-from stable_baselines.common.atari_wrappers import make_atari, DelayWrapper, MaxAndSkipEnv
+from stable_baselines.common.atari_wrappers import make_atari, DelayWrapper, MaxAndSkipEnv, WarpFrame
 from stable_baselines.common.callbacks import CheckpointCallback
 import collections
 # ENV_NAME = 'MsPacman-v0'
@@ -52,6 +52,7 @@ else:
     env_name = 'MsPacman-v0'
     env = gym.make(env_name)
 
+env = WarpFrame(env)
 env = DelayWrapper(env, config.delay_value, config.clone_full_state)
 #TODO: check if using fixed 4-frame skip is better
 # env = make_atari('BreakoutNoFrameskip-v4')
@@ -82,8 +83,8 @@ model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, le
                    load_pretrained_agent=config.load_pretrained_agent,
                    q_to_f_model_freq_ratio=config.q_to_f_model_freq_ratio, pix2pix_config=pix2pix_config)
 
-# model = DelayedDQN.load('./logs/3dtmxvsk_agent__27000_steps', env=env, use_learned_forward_model=config.use_learned_forward_model,
-#                    load_pretrained_agent=config.load_pretrained_agent)
+# model = DelayedDQN.load('./logs/3u3ovito_agent__27000_steps', env=env, use_learned_forward_model=config.use_learned_forward_model,
+#                    load_pretrained_agent=config.load_pretrained_agent, pix2pix_config=pix2pix_config)
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 # model.save(agent_full_name)

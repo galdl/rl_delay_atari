@@ -208,7 +208,7 @@ class WarpFrame(gym.ObservationWrapper):
         """
         gym.ObservationWrapper.__init__(self, env)
         self.width = 84
-        self.height = 84
+        self.height = 84 #self.env.observation_space.shape[1]
         self.observation_space = spaces.Box(low=0, high=255, shape=(self.height, self.width, 1),
                                             dtype=env.observation_space.dtype)
 
@@ -221,6 +221,8 @@ class WarpFrame(gym.ObservationWrapper):
         """
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         frame = cv2.resize(frame, (self.width, self.height), interpolation=cv2.INTER_AREA)
+        # normalize to range [0,1]
+        frame = cv2.normalize(frame, None, alpha=0, beta=1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
         return frame[:, :, None]
 
 
@@ -296,15 +298,17 @@ class DelayWrapper(gym.Env):
         self.pending_actions.clear()
         return self.orig_env.reset()
 
-    def get_pending_actions(self, pretrained_model, sess):
+    def get_pending_actions(self, pretrained_model, sess, use_pretrained_model):
         if len(self.pending_actions) == 0 and self.delay_value > 0:
             # reconstruct anticipated trajectory using the oracle
             self.store_initial_state()
             curr_state = self.get_curr_state()
             for i in range(self.delay_value):
-                # curr_state = cv2.resize(curr_state, dsize=(256, 256), interpolation=cv2.INTER_CUBIC)
-                estimated_action = self._pretained_act(pretrained_model, sess, curr_state)
-                # estimated_action = np.random.choice(self.action_space.n)
+                # curr_state = cv2.resize(curr_state, dsize=(256, 256), interpolation=
+                if use_pretrained_model:
+                    estimated_action = self._pretained_act(pretrained_model, sess, curr_state)
+                else:
+                    estimated_action = np.random.choice(self.action_space.n)
                 self.pending_actions.append(estimated_action)
                 curr_state = self.get_next_state(obs=None, action=estimated_action)
                 if curr_state is None:

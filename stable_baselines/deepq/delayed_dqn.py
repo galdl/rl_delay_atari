@@ -26,6 +26,8 @@ class ForwardModel:
         self.sess = sess
 
     def get_next_state(self, obs, action):
+        if self.learned_model.outputs.shape[-1] == 1 and obs.shape[-1] != 1:
+            obs = np.expand_dims(obs, axis=-1)
         feed_dict = {self.obs_ph: np.expand_dims(obs, axis=0)}
         next_obs = self.sess.run(self.learned_model.outputs, feed_dict)[0]
         return next_obs
@@ -281,7 +283,8 @@ class DelayedDQN(OffPolicyRLModel):
                     kwargs['update_param_noise_scale'] = True
                 with self.sess.as_default():
                     action = self.act(np.array(obs)[None], update_eps=update_eps,
-                                      pending_actions=self.env.get_pending_actions(self.pretrained_model, self.sess),
+                                      pending_actions=self.env.get_pending_actions(self.pretrained_model, self.sess,
+                                                                                   use_pretrained_model=self.load_pretrained_agent),
                                       use_learned_forward_model=self.use_learned_forward_model,
                                       forward_model=self.forward_model, **kwargs)[0]
                 env_action = action
