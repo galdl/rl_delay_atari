@@ -166,7 +166,8 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
         else: # if delayed agent, first advance state and then apply policy on it
             def act(obs, stochastic=True, update_eps=-1, pending_actions=None, use_learned_forward_model=False,
                     forward_model=None):
-                last_state = cv2.resize(np.squeeze(obs), dsize=(256, 256), interpolation=cv2.INTER_CUBIC)
+                # last_state = cv2.resize(np.squeeze(obs), dsize=(256, 256), interpolation=cv2.INTER_CUBIC)
+                last_state = np.squeeze(obs)
                 forward_model.store_initial_state()
                 for i, curr_action in enumerate(pending_actions):
                     last_state_temp = forward_model.get_next_state(obs=last_state, action=curr_action)
@@ -174,7 +175,9 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                         break
                     last_state = last_state_temp
                 forward_model.restore_initial_state()
-                last_state = cv2.resize(np.squeeze(last_state), dsize=(256, 256), interpolation=cv2.INTER_CUBIC)[None]
+                if len(last_state.shape) < 4:
+                    last_state = np.array(last_state)[None]
+                # last_state = cv2.resize(np.squeeze(last_state), dsize=(256, 256), interpolation=cv2.INTER_CUBIC)[None]
                 return _act(last_state, stochastic, update_eps)
     else: #PI mode -- completely different action function
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
@@ -405,7 +408,7 @@ def build_act_with_param_noise(q_func, ob_space, ac_space, stochastic_ph, update
 def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=None,
                 gamma=1.0, double_q=True, scope="deepq", reuse=None,
                 param_noise=False, param_noise_filter_func=None, full_tensorboard_log=False,
-                build_forward_model=False, pix2pix_lr=0.0002, pix2pix_beta1=0.5,):
+                build_forward_model=False, pix2pix_config=None):
     """
     Creates the train function:
 
@@ -459,16 +462,9 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
         next_obs_ph_float = tf.cast(next_obs_phs[0], tf.float32)
         if build_forward_model:
             # forward model
-            config = collections.namedtuple("config", "separable_conv, ngf, ndf, lr, beta1, l1_weight, gan_weight")
-            config.ngf = 64
-            config.ndf = 64
-            config.separable_conv = True
-            config.l1_weight = 100.0
-            config.gan_weight = 1.0
             with tf.variable_scope("forward_model", reuse=tf.AUTO_REUSE, custom_getter=tf_util.outer_scope_getter("forward_model")):
                 # forward_model = q_func(sess, ob_space, ac_space, 1, 1, None, reuse=True, obs_phs=obs_phs)
-                forward_model = pix2pix_model.create_model(inputs=obs_ph_float, targets=next_obs_ph_float,
-                                                           lr=pix2pix_lr, beta1=pix2pix_beta1, config=config)
+                forward_model = pix2pix_model.create_model(inputs=obs_ph_float, targets=next_obs_ph_float, config=pix2pix_config)
 
         # q network evaluation
         with tf.variable_scope("step_model", reuse=True, custom_getter=tf_util.outer_scope_getter("step_model")):
