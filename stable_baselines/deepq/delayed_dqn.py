@@ -333,7 +333,6 @@ class DelayedDQN(OffPolicyRLModel):
                         loss_dict['discrim_loss'] = f_model_losses['discrim_loss'] / f_model_losses['count']
                         loss_dict['gen_loss_GAN'] = f_model_losses['gen_loss_GAN'] / f_model_losses['count']
                         loss_dict['gen_loss_L1'] = f_model_losses['gen_loss_L1'] / f_model_losses['count']
-                    print('loss_dict: {}'.format(loss_dict))
                     reward_dict = {'episodic_reward': episode_rewards[-1]}
                     report_dict = dict(reward_dict, **loss_dict)
                     wandb.log(report_dict)
