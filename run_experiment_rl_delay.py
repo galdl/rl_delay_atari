@@ -54,7 +54,7 @@ env = DelayWrapper(env, config.delay_value, config.clone_full_state)
 # env = make_atari('BreakoutNoFrameskip-v4')
 agent_full_name = wandb.run.id + '_' + AGENT_NAME
 # Save a checkpoint every 0.5 hours considering 30 it/sec
-checkpoint_callback = CheckpointCallback(save_freq=30*1800, save_path='./logs/',
+checkpoint_callback = CheckpointCallback(save_freq=30*900, save_path='./logs/',
                                          name_prefix=agent_full_name)
 # checkpoint_callback = None
 # model = DQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, learning_rate=config.learning_rate,
@@ -69,6 +69,8 @@ model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, le
                    load_pretrained_agent=config.load_pretrained_agent,
                    q_to_f_model_freq_ratio=config.q_to_f_model_freq_ratio, pix2pix_lr=config.pix2pix_lr,
                    pix2pix_beta1=config.pix2pix_beta1)
+# model = DelayedDQN.load('./logs/3dtmxvsk_agent__27000_steps', env=env, use_learned_forward_model=config.use_learned_forward_model,
+#                    load_pretrained_agent=config.load_pretrained_agent)
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 # model.save(agent_full_name)
