@@ -33,8 +33,12 @@ parameters:
   load_pretrained_agent:
     values: [False]
   pix2pix_lr:
-    values: [0.01, 0.001, 0.0002]
+    values: [0.0002]
   pix2pix_beta1:
     values: [0.1, 0.5, 0.9]
+  pix2pix_l1_weight:
+    values: [100.0, 50.0, 1.0]
+  pix2pix_gan_weight:
+    values: [100.0, 50.0, 1.0]
   use_learned_forward_model:
     values: [True]

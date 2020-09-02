@@ -42,12 +42,13 @@ Model = collections.namedtuple("Model", "outputs, predict_real, predict_fake, di
 
 
 
-def gen_deconv(batch_input, out_channels, config):
+def gen_deconv(batch_input, out_channels, config, resize_shape=None):
     # [batch, in_height, in_width, in_channels] => [batch, out_height, out_width, out_channels]
     initializer = tf.random_normal_initializer(0, 0.02)
     if config.separable_conv:
         _b, h, w, _c = batch_input.shape
-        resized_input = tf.image.resize_images(batch_input, [h * 2, w * 2], method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        resize_shape = [h * 2, w * 2] if resize_shape is None else resize_shape[1:3]
+        resized_input = tf.image.resize_images(batch_input, resize_shape, method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
         return tf.layers.separable_conv2d(resized_input, out_channels, kernel_size=4, strides=(1, 1), padding="same", depthwise_initializer=initializer, pointwise_initializer=initializer)
     else:
         return tf.layers.conv2d_transpose(batch_input, out_channels, kernel_size=4, strides=(2, 2), padding="same", kernel_initializer=initializer,
@@ -127,7 +128,7 @@ def create_generator(generator_inputs, generator_outputs_channels, config):
 
             rectified = tf.nn.relu(input)
             # [batch, in_height, in_width, in_channels] => [batch, in_height*2, in_width*2, out_channels]
-            output = gen_deconv(rectified, out_channels, config)
+            output = gen_deconv(rectified, out_channels, config, layers[max(skip_layer - 1, 0)].shape)
             output = batchnorm(output)
 
             if dropout > 0.0:
@@ -150,7 +151,7 @@ def discrim_conv(batch_input, out_channels, stride):
     return tf.layers.conv2d(padded_input, out_channels, kernel_size=4, strides=(stride, stride), padding="valid", kernel_initializer=tf.random_normal_initializer(0, 0.02),
                             reuse=tf.AUTO_REUSE)
 
-def create_model(inputs, targets, ac_space=None, lr=0.0002, beta1=0.5, config=None):
+def create_model(inputs, targets, ac_space=None, config=None):
     def create_discriminator(discrim_inputs, discrim_targets):
         n_layers = 3
         layers = []
@@ -216,7 +217,7 @@ def create_model(inputs, targets, ac_space=None, lr=0.0002, beta1=0.5, config=No
     tf.init_scope()
     with tf.name_scope("discriminator_train"):
         discrim_tvars = [var for var in tf.trainable_variables() if "discriminator" in var.name]
-        discrim_optim = tf.train.AdamOptimizer(lr, beta1)
+        discrim_optim = tf.train.AdamOptimizer(config.lr, config.beta1)
         discrim_grads_and_vars = discrim_optim.compute_gradients(discrim_loss, var_list=discrim_tvars)
         with tf.variable_scope(tf.get_variable_scope(), reuse=tf.AUTO_REUSE):
             discrim_train = discrim_optim.apply_gradients(discrim_grads_and_vars)
@@ -224,7 +225,7 @@ def create_model(inputs, targets, ac_space=None, lr=0.0002, beta1=0.5, config=No
     with tf.name_scope("generator_train"):
         with tf.control_dependencies([discrim_train]):
             gen_tvars = [var for var in tf.trainable_variables() if "generator" in var.name]
-            gen_optim = tf.train.AdamOptimizer(lr, beta1)
+            gen_optim = tf.train.AdamOptimizer(config.lr, config.beta1)
             gen_grads_and_vars = gen_optim.compute_gradients(gen_loss, var_list=gen_tvars)
             with tf.variable_scope(tf.get_variable_scope(), reuse=tf.AUTO_REUSE):
                 gen_train = gen_optim.apply_gradients(gen_grads_and_vars)
