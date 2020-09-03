@@ -207,8 +207,8 @@ class WarpFrame(gym.ObservationWrapper):
         :param env: (Gym Environment) the environment
         """
         gym.ObservationWrapper.__init__(self, env)
-        self.width = 84
-        self.height = 84 #self.env.observation_space.shape[1]
+        self.width = self.env.observation_space.shape[0] #84
+        self.height = self.env.observation_space.shape[1] #84
         self.observation_space = spaces.Box(low=0, high=255, shape=(self.height, self.width, 1),
                                             dtype=env.observation_space.dtype)
 
