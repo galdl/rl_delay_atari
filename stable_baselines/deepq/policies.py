@@ -91,7 +91,7 @@ class FeedForwardPolicy(DQNPolicy):
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, layers=None,
                  cnn_extractor=nature_cnn, feature_extraction="cnn",
                  obs_phs=None, layer_norm=False, dueling=True, act_fun=tf.nn.relu, policy_iteration_mode=False,
-                 is_delayed_agent=False, **kwargs):
+                 is_delayed_agent=False, is_delayed_augmented_agent=False, delay_value=0, **kwargs):
         super(FeedForwardPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps,
                                                 n_batch, dueling=dueling, reuse=reuse,
                                                 scale=(feature_extraction == "cnn"), obs_phs=obs_phs)
@@ -99,6 +99,8 @@ class FeedForwardPolicy(DQNPolicy):
         self._kwargs_check(feature_extraction, kwargs)
         self.policy_iteration_mode = policy_iteration_mode
         self.is_delayed_agent = is_delayed_agent
+        self.is_delayed_augmented_agent = is_delayed_augmented_agent
+        self.delay_value = delay_value
 
         if layers is None:
             layers = [64, 64]
@@ -118,6 +120,9 @@ class FeedForwardPolicy(DQNPolicy):
                         action_out = act_fun(action_out)
                 num_outputs = self.n_actions if not policy_iteration_mode else 1
                 # num_outputs = self.n_actions
+                pending_actions_ph_len = self.delay_value if self.is_delayed_augmented_agent else 0
+                self.pending_actions_ph = tf.placeholder(tf.float32, [None, pending_actions_ph_len], name="pending_actions")
+                action_out = tf.concat((action_out, self.pending_actions_ph), axis=1)
                 action_scores = tf_layers.fully_connected(action_out, num_outputs=num_outputs, activation_fn=None)
 
             if self.dueling:
@@ -199,11 +204,13 @@ class LnCnnPolicy(FeedForwardPolicy):
 
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch,
                  reuse=False, obs_phs=None, dueling=True, policy_iteration_mode=False,
-                 is_delayed_agent=False, **_kwargs):
+                 is_delayed_agent=False, is_delayed_augmented_agent=False, delay_value=0, **_kwargs):
         super(LnCnnPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse,
                                           feature_extraction="cnn", obs_phs=obs_phs, dueling=dueling,
                                           layer_norm=True, policy_iteration_mode=policy_iteration_mode,
-                                          is_delayed_agent=is_delayed_agent, **_kwargs)
+                                          is_delayed_agent=is_delayed_agent,
+                                          is_delayed_augmented_agent=is_delayed_augmented_agent,
+                                          delay_value=delay_value, **_kwargs)
 
 
 class MlpPolicy(FeedForwardPolicy):

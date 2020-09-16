@@ -26,12 +26,12 @@ hyperparameter_defaults = dict(
     env_name='MsPacmanNoFrameskip-v4', #'MsPacman-v0',
     gamma=0.99,
     delay_value=15,
-    augment_state=False,
     buffer_size=50000,
     prioritized_replay=True,
     fixed_frame_skip=True,
     clone_full_state=False,
     load_pretrained_agent=False,
+    agent_type='delayed' #'delayed', 'augmented', 'oblivious'
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")
@@ -56,11 +56,22 @@ checkpoint_callback = None
 #                 double_q=True, target_network_update_freq=config.target_network_update_freq,
 #             gamma=config.gamma, prioritized_replay=True, exploration_initial_eps=config.exploration_initial_eps,
 #             exploration_final_eps=config.exploration_final_eps)
+if config.agent_type == 'delayed':
+    is_delayed_agent = True
+    is_delayed_augmented_agent = False
+elif config.agent_type == 'augmented':
+    is_delayed_agent = False
+    is_delayed_augmented_agent = True
+else: # 'oblivious'
+    is_delayed_agent = False
+    is_delayed_augmented_agent = False
+
 model = DelayedDQN(LnCnnPolicy, env, verbose=1, train_freq=config.train_freq, learning_rate=config.learning_rate,
                 double_q=True, target_network_update_freq=config.target_network_update_freq,
             gamma=config.gamma, prioritized_replay=config.prioritized_replay, exploration_initial_eps=config.exploration_initial_eps,
             exploration_final_eps=config.exploration_final_eps, delay_value=config.delay_value,
-                   forward_model=env, buffer_size=config.buffer_size, load_pretrained_agent=config.load_pretrained_agent)
+                   forward_model=env, buffer_size=config.buffer_size, load_pretrained_agent=config.load_pretrained_agent,
+                   is_delayed_agent=is_delayed_agent, is_delayed_augmented_agent=is_delayed_augmented_agent)
 
 model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
 # model.save(agent_full_name)

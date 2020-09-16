@@ -302,8 +302,8 @@ class DelayWrapper(gym.Env):
             self.store_initial_state()
             curr_state = self.get_curr_state()
             for i in range(self.delay_value):
-                estimated_action = self._pretained_act(pretrained_model, sess, curr_state)
-                # estimated_action = np.random.choice(self.action_space.n)
+                # estimated_action = self._pretained_act(pretrained_model, sess, curr_state)
+                estimated_action = np.random.choice(self.action_space.n)
                 self.pending_actions.append(estimated_action)
                 curr_state = self.get_next_state(state=None, action=estimated_action)
                 if curr_state is None:

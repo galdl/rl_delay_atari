@@ -6,8 +6,8 @@ metric:
 parameters:
   env_name:
     values: ['MsPacmanNoFrameskip-v4'] #['MsPacman-v0']
-  augment_state:
-    values: [False]
+  agent_type:
+    values: ['delayed', 'augmented', 'oblivious']
   delay_value:
     values: [0, 5, 15, 50]
   train_freq:
@@ -23,13 +23,13 @@ parameters:
   buffer_size:
     values: [25000]
   seed:
-    values: [1]
+    values: [1, 2, 3]
   prioritized_replay:
     values: [True]
   fixed_frame_skip:
-    values: [False, True]
+    values: [True]
   clone_full_state:
-    values: [False, True]
+    values: [False]
   load_pretrained_agent:
     values: [False]
 

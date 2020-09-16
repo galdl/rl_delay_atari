@@ -153,16 +153,22 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
 
         output_actions = tf.cond(stochastic_ph, lambda: stochastic_actions, lambda: deterministic_actions)
         update_eps_expr = eps.assign(tf.cond(update_eps_ph >= 0, lambda: update_eps_ph, lambda: eps))
-        _act = tf_util.function(inputs=[policy.obs_ph, stochastic_ph, update_eps_ph],
+        _act = tf_util.function(inputs=[policy.obs_ph, stochastic_ph, update_eps_ph, policy.pending_actions_ph],
                                 outputs=output_actions,
                                 givens={update_eps_ph: -1.0, stochastic_ph: True},
                                 updates=[update_eps_expr])
         if not policy.is_delayed_agent:
-            def act(obs, stochastic=True, update_eps=-1):
-                return _act(obs, stochastic, update_eps)
+            if policy.is_delayed_augmented_agent:
+                def act(obs, stochastic=True, update_eps=-1, pending_actions=None, **kwargs):
+                    return _act(obs, stochastic, update_eps, pending_actions)
+            else:
+                def act(obs, stochastic=True, update_eps=-1, pending_actions=None, **kwargs):
+                    pending_actions_empty = np.asarray([])[None]
+                    return _act(obs, stochastic, update_eps, pending_actions_empty)
         else: # if delayed agent, first advance state and then apply policy on it
-            def act(obs, stochastic=True, update_eps=-1, pending_actions=None, use_learned_forward_model=False,
-                    forward_model=None):
+            def act(obs, stochastic=True, update_eps=-1, pending_actions=None, **kwargs):
+                use_learned_forward_model = kwargs['use_learned_forward_model']
+                forward_model = kwargs['forward_model']
                 last_state = obs
                 if not use_learned_forward_model:
                     forward_model.store_initial_state()
@@ -175,7 +181,8 @@ def build_act(q_func, ob_space, ac_space, stochastic_ph, update_eps_ph, sess):
                     forward_model.restore_initial_state()
                 if len(last_state.shape) < 4:
                     last_state = np.array(last_state)[None]
-                return _act(last_state, stochastic, update_eps)
+                pending_actions_empty = np.asarray([])[None]
+                return _act(last_state, stochastic, update_eps, pending_actions_empty)
     else: #PI mode -- completely different action function
         _predict_v = tf_util.function(inputs=[policy.obs_ph], outputs=policy.q_values)
 
@@ -544,7 +551,10 @@ def build_train(q_func, ob_space, ac_space, optimizer, sess, grad_norm_clipping=
             target_policy.obs_ph,
             double_obs_ph,
             done_mask_ph,
-            importance_weights_ph
+            importance_weights_ph,
+            step_model.pending_actions_ph,
+            target_policy.pending_actions_ph,
+            double_policy.pending_actions_ph,
         ],
         outputs=[summary, td_error],
         updates=[optimize_expr]

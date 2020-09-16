@@ -65,9 +65,11 @@ class DelayedDQN(OffPolicyRLModel):
                  prioritized_replay_eps=1e-6, param_noise=False,
                  n_cpu_tf_sess=None, verbose=0, tensorboard_log=None,
                  _init_setup_model=True, policy_kwargs=None, full_tensorboard_log=False, seed=None,
-                 delay_value=0, forward_model=None, load_pretrained_agent=True):
+                 delay_value=0, forward_model=None, load_pretrained_agent=True, is_delayed_agent=True,
+                 is_delayed_augmented_agent=False):
 
-        policy = partial(policy, is_delayed_agent=True)
+        policy = partial(policy, is_delayed_agent=is_delayed_agent,
+                         is_delayed_augmented_agent=is_delayed_augmented_agent, delay_value=delay_value)
 
         # TODO: replay_buffer refactoring
         super(DelayedDQN, self).__init__(policy=policy, env=env, replay_buffer=None, verbose=verbose, policy_base=DQNPolicy,
@@ -116,6 +118,9 @@ class DelayedDQN(OffPolicyRLModel):
         self.exploration = None
         self.params = None
         self.summary = None
+
+        self.is_delayed_agent = is_delayed_agent
+        self.is_delayed_augmented_agent = is_delayed_augmented_agent
 
         if _init_setup_model:
             self.setup_model()
@@ -248,11 +253,18 @@ class DelayedDQN(OffPolicyRLModel):
                     kwargs['reset'] = reset
                     kwargs['update_param_noise_threshold'] = update_param_noise_threshold
                     kwargs['update_param_noise_scale'] = True
+                if self.is_delayed_agent:
+                    kwargs['use_learned_forward_model'] = self.use_learned_forward_model
+                    kwargs['forward_model'] = self.forward_model
                 with self.sess.as_default():
+                    pending_actions = self.env.get_pending_actions(self.pretrained_model, self.sess)
+                    if self.is_delayed_augmented_agent:
+                        pending_actions_reshaped = np.expand_dims(pending_actions, axis=0)
+                    else:
+                        pending_actions_reshaped = []
                     action = self.act(np.array(obs)[None], update_eps=update_eps,
-                                      pending_actions=self.env.get_pending_actions(self.pretrained_model, self.sess),
-                                      use_learned_forward_model=self.use_learned_forward_model,
-                                      forward_model=self.forward_model, **kwargs)[0]
+                                      pending_actions=pending_actions_reshaped,
+                                      **kwargs)[0]
                 env_action = action
                 reset = False
                 new_obs, rew, done, info = self.env.step(env_action)
@@ -271,7 +283,10 @@ class DelayedDQN(OffPolicyRLModel):
                 else:
                     # Avoid changing the original ones
                     obs_, new_obs_, reward_ = obs, new_obs, rew
-
+                if self.is_delayed_augmented_agent:
+                    obs_ = (obs_, pending_actions)
+                    new_pending_actions = self.env.get_pending_actions(self.pretrained_model, self.sess)
+                    new_obs_ = (new_obs_, new_pending_actions)
                 # Store transition in the replay buffer.
                 # self.replay_buffer_add(obs_, action, reward_, new_obs_, done, info)
                 self.replay_buffer_delayed_add(obs_, action, reward_, new_obs_, done, info)
@@ -337,8 +352,16 @@ class DelayedDQN(OffPolicyRLModel):
                                                                   dones, weights, sess=self.sess)
                         writer.add_summary(summary, self.num_timesteps)
                     else:
+                        if self.is_delayed_augmented_agent:
+                            pending_t = np.asarray([obses_t[i][1] for i in range(obses_t.shape[0])])
+                            obses_t = np.asarray([obses_t[i][0] for i in range(obses_t.shape[0])])
+                            pending_tp1 = np.asarray([obses_tp1[i][1] for i in range(obses_tp1.shape[0])])
+                            obses_tp1 = np.asarray([obses_tp1[i][0] for i in range(obses_tp1.shape[0])])
+                        else:
+                            pending_t = np.zeros((obses_t.shape[0], 0))
+                            pending_tp1 = np.zeros((obses_t.shape[0], 0))
                         _, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1, dones, weights,
-                                                        sess=self.sess)
+                                                        pending_t, pending_tp1, pending_tp1, sess=self.sess)
 
                     if self.prioritized_replay:
                         new_priorities = np.abs(td_errors) + self.prioritized_replay_eps
