@@ -25,13 +25,13 @@ hyperparameter_defaults = dict(
     seed=1,
     env_name='MsPacmanNoFrameskip-v4', #'MsPacman-v0',
     gamma=0.99,
-    delay_value=15,
+    delay_value=5,
     buffer_size=50000,
     prioritized_replay=True,
     fixed_frame_skip=True,
     clone_full_state=False,
     load_pretrained_agent=False,
-    agent_type='delayed' #'delayed', 'augmented', 'oblivious'
+    agent_type='augmented' #'delayed', 'augmented', 'oblivious'
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")

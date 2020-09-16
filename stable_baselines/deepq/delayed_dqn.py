@@ -352,16 +352,19 @@ class DelayedDQN(OffPolicyRLModel):
                                                                   dones, weights, sess=self.sess)
                         writer.add_summary(summary, self.num_timesteps)
                     else:
-                        if self.is_delayed_augmented_agent:
-                            pending_t = np.asarray([obses_t[i][1] for i in range(obses_t.shape[0])])
-                            obses_t = np.asarray([obses_t[i][0] for i in range(obses_t.shape[0])])
-                            pending_tp1 = np.asarray([obses_tp1[i][1] for i in range(obses_tp1.shape[0])])
-                            obses_tp1 = np.asarray([obses_tp1[i][0] for i in range(obses_tp1.shape[0])])
-                        else:
-                            pending_t = np.zeros((obses_t.shape[0], 0))
-                            pending_tp1 = np.zeros((obses_t.shape[0], 0))
-                        _, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1, dones, weights,
-                                                        pending_t, pending_tp1, pending_tp1, sess=self.sess)
+                        try:
+                            if self.is_delayed_augmented_agent:
+                                pending_t = np.asarray([obses_t[i][1] for i in range(obses_t.shape[0])])
+                                obses_t = np.asarray([obses_t[i][0] for i in range(obses_t.shape[0])])
+                                pending_tp1 = np.asarray([obses_tp1[i][1] for i in range(obses_tp1.shape[0])])
+                                obses_tp1 = np.asarray([obses_tp1[i][0] for i in range(obses_tp1.shape[0])])
+                            else:
+                                pending_t = np.zeros((obses_t.shape[0], 0))
+                                pending_tp1 = np.zeros((obses_t.shape[0], 0))
+                            _, td_errors = self._train_step(obses_t, actions, rewards, obses_tp1, obses_tp1, dones, weights,
+                                                            pending_t, pending_tp1, pending_tp1, sess=self.sess)
+                        except Exception as e:
+                            print('problem with pending_t: {}'.format(e))
 
                     if self.prioritized_replay:
                         new_priorities = np.abs(td_errors) + self.prioritized_replay_eps

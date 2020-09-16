@@ -9,7 +9,7 @@ parameters:
   agent_type:
     values: ['delayed', 'augmented', 'oblivious']
   delay_value:
-    values: [0, 5, 15, 50]
+    values: [0, 5, 15, 20]
   train_freq:
     values: [4]
   exploration_initial_eps:
