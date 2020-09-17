@@ -312,7 +312,7 @@ class DelayedDQN(OffPolicyRLModel):
                     if not isinstance(self.env, VecEnv):
                         obs = self.env.reset()
                     self.sample_buffer.clear()
-                    wandb.log({'episodic_reward': episode_rewards[-1]})
+                    wandb.log({'episodic_reward': episode_rewards[-1]}, step=self.num_timesteps)
                     # print('episodic_reward: {}'.format(episode_rewards[-1]))
                     episode_rewards.append(0.0)
                     reset = True
