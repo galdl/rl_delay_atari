@@ -288,8 +288,10 @@ class DelayedDQN(OffPolicyRLModel):
                     new_pending_actions = self.env.get_pending_actions(self.pretrained_model, self.sess)
                     new_obs_ = (new_obs_, new_pending_actions)
                 # Store transition in the replay buffer.
-                # self.replay_buffer_add(obs_, action, reward_, new_obs_, done, info)
-                self.replay_buffer_delayed_add(obs_, action, reward_, new_obs_, done, info)
+                if self.is_delayed_agent:
+                    self.replay_buffer_delayed_add(obs_, action, reward_, new_obs_, done, info)
+                else:
+                    self.replay_buffer_add(obs_, action, reward_, new_obs_, done, info)
 
                 obs = new_obs
                 # Save the unnormalized observation
