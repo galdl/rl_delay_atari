@@ -14,7 +14,7 @@ if platform.system() == 'Darwin':
     import os
     os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
-TOTAL_TIMESTEPS = int(2e6)
+TOTAL_TIMESTEPS = int(1e6)
 
 hyperparameter_defaults = dict(
     train_freq=4,
@@ -23,7 +23,7 @@ hyperparameter_defaults = dict(
     target_network_update_freq=1000,
     exploration_final_eps=0.001,
     seed=1,
-    env_name='MsPacmanNoFrameskip-v4', #'MsPacman-v0',
+    env_name='AtlantisNoFrameskip-v4', #'MsPacman-v0',
     gamma=0.99,
     delay_value=5,
     buffer_size=50000,

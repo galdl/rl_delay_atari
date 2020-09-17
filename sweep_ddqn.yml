@@ -5,11 +5,11 @@ metric:
   name: episodic_reward
 parameters:
   env_name:
-    values: ['MsPacmanNoFrameskip-v4'] #['MsPacman-v0']
+    values: ['AssaultNoFrameskip-v4', 'BreakoutNoFrameskip-v4', 'AtlantisNoFrameskip-v4'] #['MsPacmanNoFrameskip-v4']
   agent_type:
     values: ['delayed', 'augmented', 'oblivious']
   delay_value:
-    values: [0, 5, 15, 20]
+    values: [0, 5, 15, 25]
   train_freq:
     values: [4]
   exploration_initial_eps:
