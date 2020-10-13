@@ -5,7 +5,7 @@ metric:
   name: episodic_reward
 parameters:
   env_name:
-    values: ['AssaultNoFrameskip-v4', 'BreakoutNoFrameskip-v4', 'AtlantisNoFrameskip-v4'] #['MsPacmanNoFrameskip-v4']
+    values: ['StarGunnerNoFrameskip-v4', 'RoadRunnerNoFrameskip-v4', 'KrullNoFrameskip-v4'] #['MsPacmanNoFrameskip-v4']
   agent_type:
     values: ['delayed', 'augmented', 'oblivious']
   delay_value:
