@@ -11,6 +11,7 @@ from stable_baselines.common.runners import AbstractEnvRunner
 from stable_baselines.common.schedules import Scheduler
 from stable_baselines.common.tf_util import mse, total_episode_reward_logger
 from stable_baselines.common.math_util import safe_mean
+import wandb
 
 
 def discount_with_dones(rewards, dones, gamma):
@@ -263,6 +264,12 @@ class A2C(ActorCriticRLModel):
                 rollout = self.runner.run(callback)
                 # unpack
                 obs, states, rewards, masks, actions, values, ep_infos, true_reward = rollout
+
+                if len(ep_infos) > 0:  # i.e., done
+                    ep_infos = ep_infos[:-1]
+                    # wandb.log(self.episode_reward[0], step=int(update * self.n_batch))
+                    wandb.log({'episodic_reward': self.episode_reward[0]}, step=int(update * self.n_batch))
+
                 callback.update_locals(locals())
                 callback.on_rollout_end()
 
@@ -374,6 +381,9 @@ class A2CRunner(AbstractEnvRunner):
                 maybe_ep_info = info.get('episode')
                 if maybe_ep_info is not None:
                     ep_infos.append(maybe_ep_info)
+                terminal_obs = info.get('terminal_observation')
+                if terminal_obs is not None:
+                    ep_infos.append('done')
 
             self.states = states
             self.dones = dones

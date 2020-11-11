@@ -10,6 +10,7 @@ from stable_baselines.deepq.delayed_dqn import DelayedDQN
 from stable_baselines.common.atari_wrappers import make_atari, DelayWrapper, MaxAndSkipEnv
 from stable_baselines.common.callbacks import CheckpointCallback
 from stable_baselines.common.vec_env import VecFrameStack, VecNormalize, SubprocVecEnv
+from functools import partial
 
 def make_delayed_env(config):
     env = gym.make(config.env_name)
@@ -34,7 +35,7 @@ hyperparameter_defaults = dict(
     seed=1,
     env_name='MsPacmanNoFrameskip-v4', #'MsPacman-v0',
     gamma=0.99,
-    delay_value=5,
+    delay_value=0,
     buffer_size=50000,
     prioritized_replay=True,
     # fixed_frame_skip=True,
@@ -60,8 +61,9 @@ checkpoint_callback = None
 #             gamma=config.gamma, prioritized_replay=True, exploration_initial_eps=config.exploration_initial_eps,
 #             exploration_final_eps=config.exploration_final_eps)
 if config.agent_type == 'rnn':
-    env = SubprocVecEnv([make_delayed_env(config) for i in range(config.num_rnn_envs)])
-    model = A2C(CnnLnLstmPolicy, env, verbose=1, gamma=config.gamma)
+    # env = SubprocVecEnv([make_delayed_env(config) for i in range(config.num_rnn_envs)])
+    env = DummyVecEnv([partial(make_delayed_env, config=config)])
+    model = A2C(CnnLnLstmPolicy, env, verbose=1, gamma=config.gamma, tensorboard_log='')
 else:
     env = make_delayed_env(config)
     if config.agent_type == 'delayed':
