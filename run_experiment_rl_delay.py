@@ -27,7 +27,7 @@ if platform.system() == 'Darwin':
     import os
     os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
-TOTAL_TIMESTEPS = int(1e6)
+# TOTAL_TIMESTEPS = int(1e6)
 
 hyperparameter_defaults = dict(
     train_freq=4,
@@ -46,7 +46,8 @@ hyperparameter_defaults = dict(
     load_pretrained_agent=False,
     agent_type='delayed', #'delayed', 'augmented', 'oblivious', 'rnn'
     num_rnn_envs=4,
-    deepmind_wrapper=True
+    deepmind_wrapper=True,
+    total_timesteps=int(1e6)
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")
@@ -87,7 +88,7 @@ else:
                        forward_model=env, buffer_size=config.buffer_size, load_pretrained_agent=config.load_pretrained_agent,
                        is_delayed_agent=is_delayed_agent, is_delayed_augmented_agent=is_delayed_augmented_agent)
 
-model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback)
+model.learn(total_timesteps=config.total_timesteps, callback=checkpoint_callback)
 # model.save(agent_full_name)
 
 # del model # remove to demonstrate saving and loading
