@@ -7,14 +7,17 @@ from stable_baselines import logger, A2C
 from stable_baselines import DQN
 from stable_baselines.deepq.policy_iteration import PI
 from stable_baselines.deepq.delayed_dqn import DelayedDQN
-from stable_baselines.common.atari_wrappers import make_atari, DelayWrapper, MaxAndSkipEnv
+from stable_baselines.common.atari_wrappers import make_atari, DelayWrapper, MaxAndSkipEnv, wrap_deepmind
 from stable_baselines.common.callbacks import CheckpointCallback
 from stable_baselines.common.vec_env import VecFrameStack, VecNormalize, SubprocVecEnv
 from functools import partial
 
 def make_delayed_env(config):
     env = gym.make(config.env_name)
-    env = MaxAndSkipEnv(env, skip=4)
+    if config.deepmind_wrapper:
+        env = wrap_deepmind(env, episode_life=True, clip_rewards=True, frame_stack=True, scale=True)
+    else:
+        env = MaxAndSkipEnv(env, skip=4)
     env = DelayWrapper(env, config.delay_value, config.clone_full_state)
     return env
 
@@ -33,16 +36,17 @@ hyperparameter_defaults = dict(
     target_network_update_freq=1000,
     exploration_final_eps=0.001,
     seed=1,
-    env_name='MsPacmanNoFrameskip-v4', #'MsPacman-v0',
+    env_name='BoxingNoFrameskip-v4', #'MsPacman-v0',
     gamma=0.99,
-    delay_value=0,
+    delay_value=5,
     buffer_size=50000,
     prioritized_replay=True,
     # fixed_frame_skip=True,
     clone_full_state=False,
     load_pretrained_agent=False,
-    agent_type='rnn', #'delayed', 'augmented', 'oblivious', 'rnn'
+    agent_type='delayed', #'delayed', 'augmented', 'oblivious', 'rnn'
     num_rnn_envs=4,
+    deepmind_wrapper=True
 )
 # Pass your defaults to wandb.init
 wandb.init(config=hyperparameter_defaults, project="stable_baselines_tf-rl_delay")

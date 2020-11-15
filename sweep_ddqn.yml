@@ -4,12 +4,17 @@ metric:
   goal: maximize
   name: episodic_reward
 parameters:
+  seed:
+    values: [1]
+  deepmind_wrapper:
+    values: [True]
   env_name:
-    values: ['StarGunnerNoFrameskip-v4', 'RoadRunnerNoFrameskip-v4', 'KrullNoFrameskip-v4'] #['MsPacmanNoFrameskip-v4']
+    values: ['AssaultNoFrameskip-v4', 'BreakoutNoFrameskip-v4', 'AtlantisNoFrameskip-v4', 'StarGunnerNoFrameskip-v4', 'RoadRunnerNoFrameskip-v4',
+    'GopherNoFrameskip-v4', 'BoxingNoFrameskip-v4', 'RobotankNoFrameskip-v4', 'VideoPinballNoFrameskip-v4', 'DemonAttackNoFrameskip-v4',]
   agent_type:
-    values: ['delayed', 'augmented', 'oblivious']
+    values: ['delayed', 'augmented', 'oblivious', 'rnn']
   delay_value:
-    values: [0, 5, 15, 25]
+    values: [15]
   train_freq:
     values: [4]
   exploration_initial_eps:
@@ -22,8 +27,6 @@ parameters:
     values: [0.001]
   buffer_size:
     values: [25000]
-  seed:
-    values: [1, 2, 3]
   prioritized_replay:
     values: [True]
   fixed_frame_skip:
@@ -32,4 +35,5 @@ parameters:
     values: [False]
   load_pretrained_agent:
     values: [False]
+
 
