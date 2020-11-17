@@ -397,7 +397,7 @@ class DelayedDQN(OffPolicyRLModel):
                     logger.dump_tabular()
 
         callback.on_training_end()
-        return self
+        return self, episode_rewards
 
     def predict(self, observation, state=None, mask=None, deterministic=True):
         observation = np.array(observation)

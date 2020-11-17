@@ -11,6 +11,8 @@ from stable_baselines.common.atari_wrappers import make_atari, DelayWrapper, Max
 from stable_baselines.common.callbacks import CheckpointCallback
 from stable_baselines.common.vec_env import VecFrameStack, VecNormalize, SubprocVecEnv
 from functools import partial
+import numpy as np
+AVERAGE_OVER_LAST_EP = 0.05
 
 def make_delayed_env(config):
     env = gym.make(config.env_name)
@@ -36,7 +38,7 @@ hyperparameter_defaults = dict(
     target_network_update_freq=1000,
     exploration_final_eps=0.001,
     seed=1,
-    env_name='BoxingNoFrameskip-v4', #'MsPacman-v0',
+    env_name='MsPacman-v0', #'MsPacman-v0',
     gamma=0.99,
     delay_value=5,
     buffer_size=50000,
@@ -88,7 +90,12 @@ else:
                        forward_model=env, buffer_size=config.buffer_size, load_pretrained_agent=config.load_pretrained_agent,
                        is_delayed_agent=is_delayed_agent, is_delayed_augmented_agent=is_delayed_augmented_agent)
 
-model.learn(total_timesteps=config.total_timesteps, callback=checkpoint_callback)
+_, episode_rewards = model.learn(total_timesteps=config.total_timesteps, callback=checkpoint_callback)
+tot_ep_num = len(episode_rewards)
+avg_over = round(tot_ep_num * AVERAGE_OVER_LAST_EP)
+final_avg_score = np.mean(episode_rewards[-avg_over:])
+wandb.log({'final_score': final_avg_score})
+
 # model.save(agent_full_name)
 
 # del model # remove to demonstrate saving and loading

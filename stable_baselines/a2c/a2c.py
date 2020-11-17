@@ -303,7 +303,7 @@ class A2C(ActorCriticRLModel):
                     logger.dump_tabular()
 
         callback.on_training_end()
-        return self
+        return self, rewards
 
     def save(self, save_path, cloudpickle=False):
         data = {
