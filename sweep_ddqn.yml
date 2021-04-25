@@ -12,28 +12,6 @@ parameters:
     values: [False]
   env_name:
     values: ['EnduroNoFrameskip-v4', 'AlienNoFrameskip-v4', 'QbertNoFrameskip-v4']
-
-#    values: ['SurroundFrameskip-v4', 'TennisNoFrameskip-v4', 'TimePilotNoFrameskip-v4', 'TutankhamNoFrameskip-v4', 'VentureNoFrameskip-v4',
-#             'VideoPinballNoFrameskip-v4',
-#            'WizardOfWorNoFrameskip-v4', 'SkiingNoFrameskip-v4', 'YarsRevengeNoFrameskip-v4', 'ZaxxonNoFrameskip-v4']
-
-#    values: ['NameThisGameNoFrameskip-v4', 'PhoenixNoFrameskip-v4', 'PongNoFrameskip-v4', 'PrivateEyeNoFrameskip-v4', 'QbertNoFrameskip-v4',
-#            'SeaquestNoFrameskip-v4', 'SkiingFrameskip-v4', 'SolarisNoFrameskip-v4', 'SpaceInvadersNoFrameskip-v4',
-#            'StarGunnerNoFrameskip-v4', 'SurroundMasterFrameskip-v4']
-#    values: ['ChopperCommandNoFrameskip-v4', 'DefenderNoFrameskip-v4', 'DemonAttackNoFrameskip-v4', 'DoubleDunkNoFrameskip-v4', 'EnduroNoFrameskip-v4',
-#             'FishingDerbiNoFrameskip-v4', 'HeroNoFrameskip-v4', 'IceHockeyNoFrameskip-v4', 'KangarooNoFrameskip-v4',
-#             'KrullNoFrameskip-v4', 'KungFuMasterFrameskip-v4']
-#    values: ['RobotankNoFrameskip-v4', 'FrostbiteNoFrameskip-v4', 'AlienNoFrameskip-v4', 'CrazyClimberNoFrameskip-v4', 'AmidarNoFrameskip-v4',
-#             'BerzerkNoFrameskip-v4', 'MsPacmanNoFrameskip-v4', 'BoxingNoFrameskip-v4', 'RoadRunnerNoFrameskip-v4',
-#             'BreakoutNoFrameskip-v4']
-#    values: ['AlienNoFrameskip-v4', 'AmidarNoFrameskip-v4', 'AsterixNoFrameskip-v4', 'AsteroidsNoFrameskip-v4', 'BankHeistNoFrameskip-v4',
-#    'BattleZoneFrameskip-v4', 'BeamRiderNoFrameskip-v4', 'BerzerkNoFrameskip-v4', 'BowlingNoFrameskip-v4', 'CentipedeNoFrameskip-v4',
-#              'ChopperCommandFrameskip-v4', 'CrazyClimberNoFrameskip-v4', 'DefenderNoFrameskip-v4', 'DoubleDunkNoFrameskip-v4', 'EnduroNoFrameskip-v4',
-#             'FishingDerbiNoFrameskip-v4', 'FreewayNoFrameskip-v4', 'FrostbiteNoFrameskip-v4', 'GravitarNoFrameskip-v4',
-#
-#    ]
-#    values: ['AssaultNoFrameskip-v4', 'BreakoutNoFrameskip-v4', 'AtlantisNoFrameskip-v4', 'StarGunnerNoFrameskip-v4', 'RoadRunnerNoFrameskip-v4',
-#    'GopherNoFrameskip-v4', 'BoxingNoFrameskip-v4', 'RobotankNoFrameskip-v4', 'VideoPinballNoFrameskip-v4', 'DemonAttackNoFrameskip-v4',]
   agent_type:
     values: ['delayed', 'augmented', 'oblivious'] # rnn
   delay_value:
