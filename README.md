@@ -2,9 +2,10 @@
 This repository contains the implementation of the Delayed, Agumented, Oblivious, and RNN agents from the paper:
 "[Acting in Delayed Environments with Non-Stationary Markov Policies](https://arxiv.org/pdf/2101.11992)", Esther Derman<sup>\*</sup>, Gal Dalal<sup>\*</sup>, Shie Mannor (<sup>*</sup>equal contribution), published in ICLR 2021. 
 
+The agent here supports the Atari environments. The simpler agent that supports Cartpole and Acrobot can be found [here](https://github.com/galdl/rl_delay_basic).
+
 <img src="https://github.com/galdl/rl_delay_basic/blob/master/delayed_q_diagram.png" width="600" height="330">
 
-The agent here supports the Atari environments. The simpler agent that supports Cartpole and Acrobot can be found [here](https://github.com/galdl/rl_delay_basic).
 
 ## Installation
 This is a fork of [Stable-Baselines](https://github.com/hill-a/stable-baselines/releases/tag/v2.10.1) (v2.10.1, based on TensorFlow), with the addition of the delayed agent. 
@@ -26,3 +27,5 @@ To cite this repository in publications:
   year={2021}
 }
 ```
+
+Happy delaying!
